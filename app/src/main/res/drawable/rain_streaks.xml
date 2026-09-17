@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="420dp"
+    android:height="420dp"
+    android:viewportWidth="420"
+    android:viewportHeight="420">
+    <!-- 斜雨丝纹理层 -->
+    <path
+        android:strokeColor="#59FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M40,30l-14,52M120,20l-14,52M210,36l-14,52M300,24l-14,52M370,44l-14,52M70,130l-14,52M160,120l-14,52M250,132l-14,52M340,122l-14,52M30,230l-14,52M120,222l-14,52M215,234l-14,52M305,224l-14,52M385,236l-14,52M60,320l-14,52M155,314l-14,52M245,326l-14,52M335,316l-14,52" />
+</vector>

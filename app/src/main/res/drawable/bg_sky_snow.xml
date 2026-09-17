@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/bg_grad_snow" />
+    <item
+        android:width="480dp"
+        android:height="264dp"
+        android:gravity="top|end"
+        android:top="90dp"
+        android:alpha="0.55"
+        android:drawable="@drawable/cloud_soft" />
+    <item
+        android:width="520dp"
+        android:height="286dp"
+        android:gravity="bottom|start"
+        android:bottom="170dp"
+        android:left="10dp"
+        android:alpha="0.45"
+        android:drawable="@drawable/cloud_soft" />
+    <item
+        android:width="320dp"
+        android:height="320dp"
+        android:gravity="center"
+        android:alpha="0.5"
+        android:drawable="@drawable/stars_dots" />
+</layer-list>

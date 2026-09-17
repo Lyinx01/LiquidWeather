@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 天空背景层：给 Liquid Glass 提供折射细节（保持完全静态，玻璃据此采样） -->
+    <FrameLayout
+        android:id="@+id/bg_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <View
+            android:id="@+id/bg_sky"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_sky_sunny" />
+
+        <ImageView
+            android:id="@+id/cloud1"
+            android:layout_width="460dp"
+            android:layout_height="200dp"
+            android:layout_marginTop="90dp"
+            android:alpha="0.5"
+            android:scaleType="fitXY"
+            android:src="@drawable/cloud_soft" />
+
+        <ImageView
+            android:id="@+id/cloud2"
+            android:layout_width="560dp"
+            android:layout_height="240dp"
+            android:layout_marginTop="300dp"
+            android:alpha="0.35"
+            android:scaleType="fitXY"
+            android:src="@drawable/cloud_soft" />
+    </FrameLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="130dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_temp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-light"
+                    android:gravity="center"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="2"
+                    android:shadowRadius="8"
+                    android:textColor="@color/white"
+                    android:textSize="92sp" />
+
+                <TextView
+                    android:id="@+id/tv_condition"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="4"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/tv_temp_range"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:alpha="0.9"
+                    android:gravity="center"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="4"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/tv_updated"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:alpha="0.65"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tv_error"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:alpha="0.9"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:textSize="15sp"
+                    android:visibility="gone" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp" />
+
+                <!-- 逐小时预报 · Liquid Glass 卡片 -->
+                <com.example.liquidglass.LiquidGlassView
+                    android:id="@+id/glass_hourly"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:adaptiveTint="true"
+                    app:bevelWidth="32dp"
+                    app:cornerRadius="28dp"
+                    app:dispersionStrength="0.25"
+                    app:glassMaterial="regular"
+                    app:refractionHeight="28dp"
+                    app:sensorHighlight="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/title_hourly"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rv_hourly"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:clipToPadding="false"
+                            android:orientation="horizontal" />
+                    </LinearLayout>
+                </com.example.liquidglass.LiquidGlassView>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="14dp" />
+
+                <!-- 每日预报 · Liquid Glass 卡片 -->
+                <com.example.liquidglass.LiquidGlassView
+                    android:id="@+id/glass_daily"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:adaptiveTint="true"
+                    app:bevelWidth="32dp"
+                    app:cornerRadius="28dp"
+                    app:dispersionStrength="0.25"
+                    app:glassMaterial="regular"
+                    app:refractionHeight="28dp"
+                    app:sensorHighlight="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/title_daily"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rv_daily"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp" />
+                    </LinearLayout>
+                </com.example.liquidglass.LiquidGlassView>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="14dp" />
+
+                <!-- 详细信息 · Liquid Glass 卡片 -->
+                <com.example.liquidglass.LiquidGlassView
+                    android:id="@+id/glass_details"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:adaptiveTint="true"
+                    app:bevelWidth="32dp"
+                    app:cornerRadius="28dp"
+                    app:dispersionStrength="0.25"
+                    app:glassMaterial="regular"
+                    app:refractionHeight="28dp"
+                    app:sensorHighlight="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/title_details"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rv_details"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp" />
+                    </LinearLayout>
+                </com.example.liquidglass.LiquidGlassView>
+
+                <Space
+                    android:id="@+id/space_aqi"
+                    android:layout_width="match_parent"
+                    android:layout_height="14dp"
+                    android:visibility="gone" />
+
+                <!-- 空气质量 · Liquid Glass 卡片 -->
+                <com.example.liquidglass.LiquidGlassView
+                    android:id="@+id/glass_aqi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:adaptiveTint="true"
+                    app:bevelWidth="32dp"
+                    app:cornerRadius="28dp"
+                    app:dispersionStrength="0.25"
+                    app:glassMaterial="regular"
+                    app:refractionHeight="28dp"
+                    app:sensorHighlight="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/title_aqi"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/aqi_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-light"
+                                android:textSize="44sp"
+                                android:textStyle="bold" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/aqi_desc"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/white"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:id="@+id/aqi_pollutants"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:alpha="0.75"
+                                    android:textColor="@color/white"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.example.liquidglass.LiquidGlassView>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="14dp" />
+
+                <!-- 气象预警（每条预警是独立的染色玻璃卡片） -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_alerts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tv_footer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:alpha="0.5"
+                    android:gravity="center"
+                    android:text="@string/footer_source"
+                    android:textColor="@color/white"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- 顶部玻璃标题胶囊（居中） -->
+    <com.example.liquidglass.LiquidGlassView
+        android:id="@+id/glass_topbar"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="52dp"
+        android:minWidth="180dp"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp"
+        app:bevelWidth="26dp"
+        app:cornerRadius="999dp"
+        app:dispersionStrength="0.25"
+        app:glassMaterial="regular"
+        app:refractionHeight="20dp"
+        app:sensorHighlight="true">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxWidth="240dp"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </com.example.liquidglass.LiquidGlassView>
+
+    <!-- 左下：城市管理悬浮玻璃按钮 -->
+    <com.example.liquidglass.LiquidGlassView
+        android:id="@+id/glass_btn_location"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_gravity="start|bottom"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="28dp"
+        app:bevelWidth="24dp"
+        app:cornerRadius="999dp"
+        app:dispersionStrength="0.25"
+        app:glassMaterial="regular"
+        app:refractionHeight="20dp"
+        app:sensorHighlight="true">
+
+        <ImageButton
+            android:id="@+id/btn_locations"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:contentDescription="@string/action_locations"
+            android:padding="14dp"
+            android:src="@drawable/ic_location"
+            app:tint="@color/white" />
+    </com.example.liquidglass.LiquidGlassView>
+
+    <!-- 右下：设置悬浮玻璃按钮 -->
+    <com.example.liquidglass.LiquidGlassView
+        android:id="@+id/glass_btn_settings"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_gravity="end|bottom"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="28dp"
+        app:bevelWidth="24dp"
+        app:cornerRadius="999dp"
+        app:dispersionStrength="0.25"
+        app:glassMaterial="regular"
+        app:refractionHeight="20dp"
+        app:sensorHighlight="true">
+
+        <ImageButton
+            android:id="@+id/btn_settings"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:contentDescription="@string/action_settings"
+            android:padding="14dp"
+            android:src="@drawable/ic_settings"
+            app:tint="@color/white" />
+    </com.example.liquidglass.LiquidGlassView>
+</FrameLayout>

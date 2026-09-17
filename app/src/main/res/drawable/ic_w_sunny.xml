@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- iOS sun.max.fill：纯色圆 + 圆头射线 -->
+    <path
+        android:fillColor="#FFD60A"
+        android:pathData="M12,7.4a4.6,4.6 0 1,0 0.01,0z" />
+    <path
+        android:strokeColor="#FFD60A"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
+        android:pathData="M12,5.4V3M12,18.6V21M5.4,12H3M18.6,12H21M16.7,7.3L18.4,5.6M5.6,5.6L7.3,7.3M16.7,16.7L18.4,18.4M5.6,18.4L7.3,16.7" />
+</vector>

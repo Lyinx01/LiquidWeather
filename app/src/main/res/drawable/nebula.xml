@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="320dp"
+    android:height="320dp"
+    android:viewportWidth="320"
+    android:viewportHeight="320">
+    <!-- 夜空星云光晕 -->
+    <path android:pathData="M160,160a150,120 0 1,0 0.02,0z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="160"
+                android:centerY="160"
+                android:gradientRadius="155"
+                android:startColor="#33837FB8"
+                android:endColor="#00837FB8"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M96,96a70,60 0 1,0 0.02,0z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="96"
+                android:centerY="96"
+                android:gradientRadius="75"
+                android:startColor="#269C97D4"
+                android:endColor="#009C97D4"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+</vector>

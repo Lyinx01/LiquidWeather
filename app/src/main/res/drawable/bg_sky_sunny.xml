@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/bg_grad_sunny" />
+    <item
+        android:width="320dp"
+        android:height="320dp"
+        android:gravity="top|end"
+        android:top="24dp"
+        android:right="24dp"
+        android:drawable="@drawable/sun_glow" />
+    <item
+        android:width="480dp"
+        android:height="264dp"
+        android:gravity="top|start"
+        android:top="150dp"
+        android:left="30dp"
+        android:alpha="0.6"
+        android:drawable="@drawable/cloud_soft" />
+    <item
+        android:width="540dp"
+        android:height="297dp"
+        android:gravity="bottom|end"
+        android:bottom="230dp"
+        android:alpha="0.45"
+        android:drawable="@drawable/cloud_soft" />
+    <item
+        android:width="420dp"
+        android:height="231dp"
+        android:gravity="bottom|start"
+        android:bottom="60dp"
+        android:left="20dp"
+        android:alpha="0.4"
+        android:drawable="@drawable/cloud_soft" />
+</layer-list>

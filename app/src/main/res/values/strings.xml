@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">琉璃天气</string>
+
+    <!-- 卡片标题 -->
+    <string name="title_hourly">逐小时预报</string>
+    <string name="title_daily">每日预报</string>
+    <string name="title_details">详细信息</string>
+    <string name="title_aqi">空气质量</string>
+    <string name="footer_source">数据来源：彩云天气 API · 界面灵感来自 breezy-weather</string>
+
+    <!-- 操作 -->
+    <string name="action_locations">城市管理</string>
+    <string name="action_refresh">刷新</string>
+    <string name="action_settings">设置</string>
+    <string name="action_locate">定位</string>
+    <string name="action_save">保存</string>
+    <string name="action_delete">删除</string>
+    <string name="action_retry">重试</string>
+    <string name="action_go_settings">去设置</string>
+    <string name="search_hint">搜索城市</string>
+
+    <!-- 状态与提示 -->
+    <string name="updated_at">更新于 %1$s</string>
+    <string name="temp_range">最高 %1$d° · 最低 %2$d°</string>
+    <string name="idle_hint">尚未选择城市\n点击左上角选择，或使用右上角按钮开启定位</string>
+    <string name="locate_failed">未获取到位置，请检查定位服务是否开启</string>
+    <string name="city_updated">已更新城市：%1$s</string>
+    <string name="permission_denied">未授予定位权限，已显示默认城市</string>
+    <string name="city_deleted">已删除城市</string>
+    <string name="delete_city">删除城市</string>
+    <string name="location_current">当前位置</string>
+
+    <string name="need_token_title">需要 API Token</string>
+    <string name="need_token_msg">琉璃天气使用彩云天气 API 获取数据。\n请先在设置中填写你的 Token（可在 dashboard.caiyunapp.com 免费申请）。</string>
+
+    <!-- 详情项 -->
+    <string name="detail_feels_like">体感温度</string>
+    <string name="detail_humidity">相对湿度</string>
+    <string name="detail_wind">风</string>
+    <string name="detail_pressure">气压</string>
+    <string name="detail_cloud">云量</string>
+    <string name="detail_uv">紫外线</string>
+    <string name="detail_comfort">舒适度</string>
+    <string name="detail_precip">降水强度</string>
+    <string name="detail_sunrise">日出</string>
+    <string name="detail_sunset">日落</string>
+
+    <!-- 设置页 -->
+    <string name="settings_token_label">彩云天气 API Token</string>
+    <string name="settings_token_hint">粘贴你的 Token</string>
+    <string name="settings_get_token">没有令牌？前往 dashboard.caiyunapp.com 申请 →</string>
+    <string name="token_saved">已保存</string>
+    <string name="no_browser">未找到可用的浏览器</string>
+    <string name="settings_about">琉璃天气 v1.0.0\n\n数据来源：彩云天气 API（api.caiyunapp.com）\n玻璃效果：Liquid-Glass-Android（github.com/QWEA0）\n设计参考：开源项目 breezy-weather</string>
+</resources>

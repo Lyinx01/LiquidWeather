@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/bg_grad_night" />
+    <item
+        android:width="320dp"
+        android:height="320dp"
+        android:gravity="top|start"
+        android:top="30dp"
+        android:left="10dp"
+        android:alpha="0.9"
+        android:drawable="@drawable/stars_dots" />
+    <item
+        android:width="300dp"
+        android:height="300dp"
+        android:gravity="bottom|end"
+        android:bottom="170dp"
+        android:alpha="0.7"
+        android:drawable="@drawable/stars_dots" />
+    <item
+        android:width="340dp"
+        android:height="340dp"
+        android:gravity="center"
+        android:alpha="0.8"
+        android:drawable="@drawable/nebula" />
+    <item
+        android:width="190dp"
+        android:height="190dp"
+        android:gravity="top|end"
+        android:top="46dp"
+        android:right="34dp"
+        android:drawable="@drawable/moon_glow" />
+    <item
+        android:width="520dp"
+        android:height="286dp"
+        android:gravity="bottom|start"
+        android:bottom="40dp"
+        android:alpha="0.16"
+        android:drawable="@drawable/cloud_soft" />
+    <item
+        android:width="380dp"
+        android:height="209dp"
+        android:gravity="top|start"
+        android:top="180dp"
+        android:alpha="0.1"
+        android:drawable="@drawable/cloud_soft" />
+</layer-list>

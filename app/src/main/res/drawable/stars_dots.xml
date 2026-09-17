@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="320dp"
+    android:viewportWidth="320"
+    android:viewportHeight="320">
+    <!-- 星点：亮层 -->
+    <path
+        android:fillColor="#D9FFFFFF"
+        android:pathData="M36,52a1.8,1.8 0 1,0 0.02,0zM118,26a1.4,1.4 0 1,0 0.02,0zM212,74a2.2,2.2 0 1,0 0.02,0zM74,142a1.5,1.5 0 1,0 0.02,0zM168,178a1.9,1.9 0 1,0 0.02,0zM252,148a1.5,1.5 0 1,0 0.02,0zM44,214a1.9,1.9 0 1,0 0.02,0zM132,246a1.4,1.4 0 1,0 0.02,0zM232,236a2,2 0 1,0 0.02,0zM286,182a1.3,1.3 0 1,0 0.02,0zM186,58a1.2,1.4 0 1,0 0.02,0zM288,28a1.6,1.6 0 1,0 0.02,0z" />
+    <!-- 星点：暗层 -->
+    <path
+        android:fillColor="#66FFFFFF"
+        android:pathData="M66,96a1.1,1.1 0 1,0 0.02,0zM148,118a0.9,0.9 0 1,0 0.02,0zM244,110a1.2,1.2 0 1,0 0.02,0zM96,186a0.9,0.9 0 1,0 0.02,0zM204,214a1.1,1.1 0 1,0 0.02,0zM282,246a0.9,0.9 0 1,0 0.02,0zM20,158a1.1,1.1 0 1,0 0.02,0zM158,286a1.2,1.2 0 1,0 0.02,0zM262,58a0.9,0.9 0 1,0 0.02,0z" />
+</vector>

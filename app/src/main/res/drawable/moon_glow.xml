@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <!-- 月亮：柔光 + 月牙 -->
+    <path android:pathData="M100,14a86,86 0 1,0 0.02,0z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="100"
+                android:centerY="100"
+                android:gradientRadius="86"
+                android:startColor="#40FFE9A8"
+                android:endColor="#00FFE9A8"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#F2E9C8"
+        android:pathData="M106,54c-14.4,1.5 -25.4,13.6 -25.4,28.1c0,15.6 12.7,28.3 28.3,28.3c11.1,0 20.9,-6.4 25.3,-16c-2.2,0.6 -4.3,0.9 -6.5,0.9c-13,0 -23.5,-10.5 -23.5,-23.5c0,-7.4 3.4,-14 8.7,-18.3C111.2,53.6 108.6,53.8 106,54z" />
+</vector>

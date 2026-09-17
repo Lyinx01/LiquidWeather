@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/bg_grad_rain" />
+    <item
+        android:width="540dp"
+        android:height="297dp"
+        android:gravity="top|start"
+        android:top="60dp"
+        android:left="10dp"
+        android:alpha="0.55"
+        android:drawable="@drawable/cloud_soft" />
+    <item
+        android:width="560dp"
+        android:height="308dp"
+        android:gravity="top|end"
+        android:top="190dp"
+        android:alpha="0.5"
+        android:drawable="@drawable/cloud_soft" />
+    <item
+        android:width="440dp"
+        android:height="242dp"
+        android:gravity="bottom|start"
+        android:bottom="140dp"
+        android:left="20dp"
+        android:alpha="0.4"
+        android:drawable="@drawable/cloud_soft" />
+    <item android:drawable="@drawable/rain_streaks" android:alpha="0.5" />
+</layer-list>

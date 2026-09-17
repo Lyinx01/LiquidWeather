@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="220dp"
+    android:height="220dp"
+    android:viewportWidth="220"
+    android:viewportHeight="220">
+    <!-- 太阳光晕：大范围柔光 + 亮核 -->
+    <path android:pathData="M110,12a98,98 0 1,0 0.02,0z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="110"
+                android:centerY="110"
+                android:gradientRadius="98"
+                android:startColor="#59FFF2B8"
+                android:endColor="#00FFF2B8"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#F5EFC2"
+        android:pathData="M110,52a46,46 0 1,0 0.02,0z" />
+</vector>
