@@ -7,6 +7,8 @@ import com.liuli.weather.data.model.Weather
 import com.liuli.weather.data.prefs.SettingsStore
 import com.liuli.weather.data.source.AccuSource
 import com.liuli.weather.data.source.CaiyunSource
+import com.liuli.weather.data.source.OpenWeatherSource
+import com.liuli.weather.data.source.QWeatherSource
 import com.liuli.weather.data.source.WeatherSource
 import java.io.File
 import java.util.Locale
@@ -21,6 +23,8 @@ class WeatherRepository(context: Context, private val settings: SettingsStore) {
     private val gson = Gson()
     private val caiyunSource = CaiyunSource(settings)
     private val accuSource = AccuSource(settings)
+    private val openWeatherSource = OpenWeatherSource(settings)
+    private val qWeatherSource = QWeatherSource(settings)
 
     init {
         cleanupLegacyCache()
@@ -43,8 +47,12 @@ class WeatherRepository(context: Context, private val settings: SettingsStore) {
         }
     }
 
-    private fun sourceFor(): WeatherSource =
-        if (settings.effectiveSource() == SettingsStore.SOURCE_ACCU) accuSource else caiyunSource
+    private fun sourceFor(): WeatherSource = when (settings.effectiveSource()) {
+        SettingsStore.SOURCE_ACCU -> accuSource
+        SettingsStore.SOURCE_OPENWEATHER -> openWeatherSource
+        SettingsStore.SOURCE_QWEATHER -> qWeatherSource
+        else -> caiyunSource
+    }
 
     // ---------------------------------------------------------------- cache
 
@@ -65,10 +73,14 @@ class WeatherRepository(context: Context, private val settings: SettingsStore) {
 
     /** 删除多数据源改造前不带源前缀的旧缓存文件。 */
     private fun cleanupLegacyCache() {
+        val prefixes = listOf(
+            SettingsStore.SOURCE_CAIYUN,
+            SettingsStore.SOURCE_ACCU,
+            SettingsStore.SOURCE_OPENWEATHER,
+            SettingsStore.SOURCE_QWEATHER
+        )
         val files = appContext.filesDir.listFiles { _, name ->
-            name.startsWith("wx_") &&
-                !name.startsWith("wx_${SettingsStore.SOURCE_CAIYUN}") &&
-                !name.startsWith("wx_${SettingsStore.SOURCE_ACCU}")
+            name.startsWith("wx_") && prefixes.none { name.startsWith("wx_$it") }
         } ?: return
         files.forEach { it.delete() }
     }

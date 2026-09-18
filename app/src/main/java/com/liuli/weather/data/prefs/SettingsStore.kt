@@ -21,6 +21,14 @@ class SettingsStore(context: Context) {
         get() = prefs.getString(KEY_ACCU_TOKEN, null)?.trim()?.takeIf { it.isNotEmpty() }
         set(value) = prefs.edit().putString(KEY_ACCU_TOKEN, value?.trim()).apply()
 
+    var owToken: String?
+        get() = prefs.getString(KEY_OW_TOKEN, null)?.trim()?.takeIf { it.isNotEmpty() }
+        set(value) = prefs.edit().putString(KEY_OW_TOKEN, value?.trim()).apply()
+
+    var qwToken: String?
+        get() = prefs.getString(KEY_QW_TOKEN, null)?.trim()?.takeIf { it.isNotEmpty() }
+        set(value) = prefs.edit().putString(KEY_QW_TOKEN, value?.trim()).apply()
+
     var source: String
         get() = prefs.getString(KEY_SOURCE, SOURCE_CAIYUN) ?: SOURCE_CAIYUN
         set(value) = prefs.edit().putString(KEY_SOURCE, value).apply()
@@ -28,8 +36,12 @@ class SettingsStore(context: Context) {
     fun effectiveSource(): String = source
 
     /** 当前数据源是否已配置 Key。 */
-    fun hasTokenForSource(source: String): Boolean =
-        if (source == SOURCE_ACCU) accuToken != null else token != null
+    fun hasTokenForSource(source: String): Boolean = when (source) {
+        SOURCE_ACCU -> accuToken != null
+        SOURCE_OPENWEATHER -> owToken != null
+        SOURCE_QWEATHER -> qwToken != null
+        else -> token != null
+    }
 
     var lastSuccessAt: Long
         get() = prefs.getLong(KEY_LAST_SUCCESS, 0L)
@@ -121,9 +133,13 @@ class SettingsStore(context: Context) {
     companion object {
         const val SOURCE_CAIYUN = "caiyun"
         const val SOURCE_ACCU = "accu"
+        const val SOURCE_OPENWEATHER = "openweather"
+        const val SOURCE_QWEATHER = "qweather"
 
         private const val KEY_TOKEN = "caiyun_token"
         private const val KEY_ACCU_TOKEN = "accu_token"
+        private const val KEY_OW_TOKEN = "ow_token"
+        private const val KEY_QW_TOKEN = "qw_token"
         private const val KEY_SOURCE = "weather_source"
         private const val KEY_LOCATIONS = "saved_locations"
         private const val KEY_CURRENT = "current_index"

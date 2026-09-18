@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_settings"
@@ -20,7 +19,7 @@
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <!-- 数据源选择 -->
+        <!-- 数据源选择（点击弹出单选列表） -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,32 +29,36 @@
             android:textColor="@color/white"
             android:textSize="14sp" />
 
-        <RadioGroup
-            android:id="@+id/rg_source"
+        <LinearLayout
+            android:id="@+id/source_row"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_search"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
-            <RadioButton
-                android:id="@+id/rb_caiyun"
-                android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/tv_source_value"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:buttonTint="@color/white"
-                android:text="@string/source_caiyun"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:singleLine="true"
                 android:textColor="@color/white"
-                android:textSize="14sp" />
+                android:textSize="15sp" />
 
-            <RadioButton
-                android:id="@+id/rb_accu"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:buttonTint="@color/white"
-                android:text="@string/source_accu"
-                android:textColor="@color/white"
-                android:textSize="14sp" />
-        </RadioGroup>
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_chevron_right"
+                app:tint="#99FFFFFF"
+                xmlns:app="http://schemas.android.com/apk/res-auto" />
+        </LinearLayout>
 
         <!-- 彩云 Token -->
         <TextView
@@ -88,9 +91,46 @@
             android:id="@+id/tv_get_token"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:padding="4dp"
             android:text="@string/settings_get_token"
+            android:textColor="@color/link"
+            android:textSize="13sp" />
+
+        <!-- 和风天气 Key -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:alpha="0.8"
+            android:text="@string/settings_qw_label"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/et_qw_token"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_search"
+            android:hint="@string/settings_qw_hint"
+            android:importantForAutofill="no"
+            android:inputType="text"
+            android:maxLines="1"
+            android:minHeight="48dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/white"
+            android:textColorHint="#80FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tv_get_qw_key"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:padding="4dp"
+            android:text="@string/settings_get_qw_key"
             android:textColor="@color/link"
             android:textSize="13sp" />
 
@@ -125,9 +165,46 @@
             android:id="@+id/tv_get_accu_key"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:padding="4dp"
             android:text="@string/settings_get_accu_key"
+            android:textColor="@color/link"
+            android:textSize="13sp" />
+
+        <!-- OpenWeather Key -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:alpha="0.8"
+            android:text="@string/settings_ow_label"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/et_ow_token"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_search"
+            android:hint="@string/settings_ow_hint"
+            android:importantForAutofill="no"
+            android:inputType="text"
+            android:maxLines="1"
+            android:minHeight="48dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/white"
+            android:textColorHint="#80FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tv_get_ow_key"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:padding="4dp"
+            android:text="@string/settings_get_ow_key"
             android:textColor="@color/link"
             android:textSize="13sp" />
 
@@ -137,7 +214,7 @@
             android:layout_marginTop="8dp"
             android:alpha="0.55"
             android:lineSpacingExtra="3dp"
-            android:text="@string/settings_accu_note"
+            android:text="@string/settings_keys_note"
             android:textColor="@color/white"
             android:textSize="12sp" />
 
