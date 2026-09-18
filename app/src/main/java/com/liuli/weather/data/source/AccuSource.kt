@@ -9,6 +9,7 @@ import com.liuli.weather.data.prefs.SettingsStore
 import com.liuli.weather.data.remote.AccuCurrent
 import com.liuli.weather.data.remote.AccuDailyResponse
 import com.liuli.weather.data.remote.AccuHourly
+import com.liuli.weather.data.remote.AccuMetric
 import com.liuli.weather.data.remote.ApiException
 import com.liuli.weather.data.remote.RetrofitClient
 import com.liuli.weather.util.TimeUtils
@@ -33,10 +34,21 @@ class AccuSource(private val settings: SettingsStore) : WeatherSource {
         val locationKey = loc.accuKey ?: resolveLocationKey(loc, token)
 
         val api = RetrofitClient.accuApi
-        val current = api.current(token, locationKey).firstOrNull()
-            ?: throw ApiException("AccuWeather 无当前天气数据")
-        val hourly = api.hourly12(token, locationKey)
-        val daily = api.daily5(token, locationKey)
+        val current = try {
+            api.current(locationKey, token)
+        } catch (e: retrofit2.HttpException) {
+            throw ApiException("AccuWeather 实时 HTTP ${e.code()}：${errorBodyOf(e)}")
+        }.firstOrNull() ?: throw ApiException("AccuWeather 无当前天气数据")
+        val hourly = try {
+            api.hourly12(locationKey, token)
+        } catch (e: retrofit2.HttpException) {
+            throw ApiException("AccuWeather 逐小时 HTTP ${e.code()}：${errorBodyOf(e)}")
+        }
+        val daily = try {
+            api.daily5(locationKey, token)
+        } catch (e: retrofit2.HttpException) {
+            throw ApiException("AccuWeather 每日 HTTP ${e.code()}：${errorBodyOf(e)}")
+        }
 
         return mapWeather(loc, current, hourly, daily)
     }
@@ -46,14 +58,38 @@ class AccuSource(private val settings: SettingsStore) : WeatherSource {
         val q = String.format(
             java.util.Locale.US, "%.4f,%.4f", loc.lat, loc.lng
         )
-        val resp = RetrofitClient.accuApi.geoposition(token, q)
+        val resp = try {
+            RetrofitClient.accuApi.geoposition(token, q)
+        } catch (e: retrofit2.HttpException) {
+            throw ApiException("AccuWeather 位置解析 HTTP ${e.code()}：${errorBodyOf(e)}")
+        }
         val key = resp.key?.takeIf { it.isNotBlank() }
             ?: throw ApiException("AccuWeather 位置解析失败")
         settings.updateLocationAccuKey(loc, key)
         return key
     }
 
+    /** 提取 HTTP 错误响应体（截断），便于诊断 401/403 的具体原因。 */
+    private fun errorBodyOf(e: retrofit2.HttpException): String = try {
+        e.response()?.errorBody()?.string()?.take(200) ?: ""
+    } catch (ex: Exception) {
+        ""
+    }
+
     // ---------------------------------------------------------------- mapping
+
+    /** 摄氏度取值：接口请求带 metric=true，但保留单位兜底换算以防订阅档差异。 */
+    private fun AccuMetric.celsius(): Double? = when (unit?.uppercase()) {
+        "F" -> value?.let { (it - 32.0) * 5.0 / 9.0 }
+        else -> value
+    }
+
+    /** km/h 取值：接口默认可能返回 mi/h。 */
+    private fun AccuMetric.kmh(): Double? = when (unit?.lowercase()) {
+        "mi/h" -> value?.let { it * 1.609344 }
+        "m/s" -> value?.let { it * 3.6 }
+        else -> value
+    }
 
     private fun mapWeather(
         loc: LocationInfo,
@@ -68,14 +104,14 @@ class AccuSource(private val settings: SettingsStore) : WeatherSource {
         val currentSkycon = skyconForIcon(c.weatherIcon, currentNight)
 
         val current = CurrentWeather(
-            temperature = c.temperature?.metric?.value ?: 0.0,
-            apparentTemperature = c.realFeelTemperature?.metric?.value
-                ?: c.temperature?.metric?.value ?: 0.0,
+            temperature = c.temperature?.metric?.celsius() ?: 0.0,
+            apparentTemperature = c.realFeelTemperature?.metric?.celsius()
+                ?: c.temperature?.metric?.celsius() ?: 0.0,
             humidity = (c.relativeHumidity ?: 0.0) / 100.0,
             skycon = currentSkycon,
             skyconName = c.weatherText?.takeIf { it.isNotBlank() }
                 ?: WeatherCodeMapper.textFor(currentSkycon),
-            windSpeed = c.wind?.speed?.metric?.value ?: 0.0,
+            windSpeed = c.wind?.speed?.metric?.kmh() ?: 0.0,
             windDirection = WeatherCodeMapper.windText(
                 c.wind?.direction?.localized, c.wind?.direction?.degrees
             ),
@@ -94,7 +130,8 @@ class AccuSource(private val settings: SettingsStore) : WeatherSource {
             val epochMillis = (h.epochDateTime ?: 0L) * 1000L
             HourlyWeather(
                 time = epochMillis,
-                temperature = h.temperature?.metric?.value ?: 0.0,
+                // hourly 接口是扁平结构 {Value, Unit}
+                temperature = h.temperature?.celsius() ?: 0.0,
                 skycon = skyconForHourIcon(h.weatherIcon, epochMillis),
                 precipProbability = h.precipitationProbability
             )
@@ -109,16 +146,16 @@ class AccuSource(private val settings: SettingsStore) : WeatherSource {
             DailyWeather(
                 date = TimeUtils.parseIsoMillis(d.date),
                 skycon = skyconForIcon(d.day?.icon, night = false),
-                tempMax = d.temperature?.maximum?.value ?: 0.0,
-                tempMin = d.temperature?.minimum?.value ?: 0.0,
+                tempMax = d.temperature?.maximum?.celsius() ?: 0.0,
+                tempMin = d.temperature?.minimum?.celsius() ?: 0.0,
                 precipProbability = if (prob > 0) prob else null,
                 uvIndex = uv?.value?.roundToInt()?.toString(),
                 uvDesc = uv?.category,
                 sunrise = d.sun?.rise?.let { TimeUtils.clockLabel(TimeUtils.parseIsoMillis(it)) },
                 sunset = d.sun?.set?.let { TimeUtils.clockLabel(TimeUtils.parseIsoMillis(it)) },
                 windMax = max(
-                    d.wind?.day?.speed?.metric?.value ?: 0.0,
-                    d.wind?.night?.speed?.metric?.value ?: 0.0
+                    d.wind?.day?.speed?.kmh() ?: 0.0,
+                    d.wind?.night?.speed?.kmh() ?: 0.0
                 ).takeIf { it > 0.0 }
             )
         }

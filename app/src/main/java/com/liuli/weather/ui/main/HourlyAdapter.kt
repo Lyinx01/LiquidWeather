@@ -33,7 +33,11 @@ class HourlyAdapter : ListAdapter<HourlyWeather, HourlyAdapter.ViewHolder>(Diff)
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: HourlyWeather, isFirst: Boolean, imperial: Boolean) {
-            binding.tvTime.text = if (isFirst) "现在" else TimeUtils.hourLabel(item.time)
+            // 仅当首格确实是当前小时才标"现在"（AccuWeather 等源首格是整点预报）
+            val nowHour = System.currentTimeMillis() / 3_600_000L
+            val itemHour = item.time / 3_600_000L
+            binding.tvTime.text =
+                if (isFirst && nowHour == itemHour) "现在" else TimeUtils.hourLabel(item.time)
             binding.ivIcon.setImageResource(WeatherCodeMapper.iconFor(item.skycon))
             binding.tvTemp.text =
                 "${com.liuli.weather.util.UnitConverter.displayInt(item.temperature, imperial)}°"

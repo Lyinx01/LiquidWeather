@@ -43,6 +43,7 @@ data class AccuCurrent(
 
 data class AccuMetricValue(@SerializedName("Metric") val metric: AccuMetric? = null)
 
+/** 值 + 单位。注意：currentconditions 用 Metric 包裹，hourly/daily 是扁平结构。 */
 data class AccuMetric(
     @SerializedName("Value") val value: Double? = null,
     @SerializedName("Unit") val unit: String? = null
@@ -63,9 +64,14 @@ data class AccuHourly(
     @SerializedName("EpochDateTime") val epochDateTime: Long? = null,
     @SerializedName("WeatherIcon") val weatherIcon: Int? = null,
     @SerializedName("IconPhrase") val iconPhrase: String? = null,
-    @SerializedName("Temperature") val temperature: AccuMetricValue? = null,
+    // 扁平结构：{"Value":75.0,"Unit":"F"}
+    @SerializedName("Temperature") val temperature: AccuMetric? = null,
+    @SerializedName("Wind") val wind: AccuHourlyWind? = null,
+    @SerializedName("RelativeHumidity") val relativeHumidity: Double? = null,
     @SerializedName("PrecipitationProbability") val precipitationProbability: Int? = null
 )
+
+data class AccuHourlyWind(@SerializedName("Speed") val speed: AccuMetric? = null)
 
 data class AccuDailyResponse(
     @SerializedName("Headline") val headline: AccuHeadline? = null,
@@ -88,6 +94,7 @@ data class AccuDailyResponse(
     )
 
     data class AccuMinMax(
+        // 扁平结构：{"Value":18.9,"Unit":"C"}
         @SerializedName("Minimum") val minimum: AccuMetric? = null,
         @SerializedName("Maximum") val maximum: AccuMetric? = null
     )
@@ -100,10 +107,14 @@ data class AccuDailyResponse(
 
     data class AccuSun(
         @SerializedName("Rise") val rise: String? = null,
-        @SerializedName("Set") val set: String? = null
+        @SerializedName("EpochRise") val epochRise: Long? = null,
+        @SerializedName("Set") val set: String? = null,
+        @SerializedName("EpochSet") val epochSet: Long? = null
     )
 
-    data class AccuDailyWind(val day: AccuWind? = null, val night: AccuWind? = null)
+    data class AccuDailyWind(val day: AccuDayWind? = null, val night: AccuDayWind? = null)
+
+    data class AccuDayWind(@SerializedName("Speed") val speed: AccuMetric? = null)
 
     data class AccuAirPollen(
         @SerializedName("Name") val name: String? = null,
