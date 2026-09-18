@@ -169,10 +169,13 @@
                     android:visibility="gone"
                     app:adaptiveTint="true"
                     app:bevelWidth="36dp"
+                    app:blurAmount="0.4"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0.32"
                     app:glassMaterial="regular"
+                    app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
+                    app:saturation="160"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -211,10 +214,13 @@
                     android:visibility="gone"
                     app:adaptiveTint="true"
                     app:bevelWidth="36dp"
+                    app:blurAmount="0.4"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0.32"
                     app:glassMaterial="regular"
+                    app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
+                    app:saturation="160"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -251,10 +257,13 @@
                     android:visibility="gone"
                     app:adaptiveTint="true"
                     app:bevelWidth="36dp"
+                    app:blurAmount="0.4"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0.32"
                     app:glassMaterial="regular"
+                    app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
+                    app:saturation="160"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -293,10 +302,13 @@
                     android:visibility="gone"
                     app:adaptiveTint="true"
                     app:bevelWidth="36dp"
+                    app:blurAmount="0.4"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0.32"
                     app:glassMaterial="regular"
+                    app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
+                    app:saturation="160"
                     app:sensorHighlight="true">
 
                     <LinearLayout
