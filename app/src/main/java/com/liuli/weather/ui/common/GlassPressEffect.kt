@@ -20,8 +20,18 @@ object GlassPressEffect {
 
     private const val NO_HIGHLIGHT = 0x00000000
 
-    fun attach(glassView: LiquidGlassView, vararg touchSources: View) {
+    /**
+     * @param onPress 按压状态回调：true=按下 / false=松开。
+     * 供宿主在按住期间临时开启该玻璃的逐帧动态采样——缩放动画期间 backdrop
+     * 若用旧缓存，折射画面会在重采时跳变；逐帧重采可让折射实时跟随缩放。
+     */
+    fun attach(
+        glassView: LiquidGlassView,
+        onPress: ((Boolean) -> Unit)? = null,
+        vararg touchSources: View
+    ) {
         fun setPressed(down: Boolean) {
+            onPress?.invoke(down)
             glassView.glassTint = if (down) PRESSED_HIGHLIGHT else NO_HIGHLIGHT
             glassView.animate()
                 .scaleX(if (down) PRESSED_SCALE else 1f)

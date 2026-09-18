@@ -72,6 +72,9 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private val glassIdleRunnable = Runnable { onScrollIdle() }
     private var scrolling = false
 
+    /** 按住中的玻璃数量：>0 时抑制降频，保持动态采样让折射跟随缩放。 */
+    private var pressedGlassCount = 0
+
     /** 卡片低频刷新：只做 invalidate，库在背景哈希变化时才真正重采，避免逐帧全量采样。 */
     private val cardRefreshRunnable = object : Runnable {
         override fun run() {
@@ -188,7 +191,32 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     /** 滚动停止/数据刷新后：恢复静止策略（卡片动态折射飘移云层）。 */
     private fun onScrollIdle() {
         scrolling = false
+        if (pressedGlassCount > 0) {
+            // 按住期间保持动态采样（折射跟随缩放），松手后自然降频
+            glassIdleHandler.postDelayed(glassIdleRunnable, GLASS_IDLE_DELAY_MS)
+            return
+        }
         applyGlassDynamicPolicy()
+    }
+
+    /** 悬浮玻璃按压状态变化：按住期间保持动态采样，折射实时跟随缩放动画。 */
+    private fun onGlassPressed(down: Boolean) {
+        if (down) {
+            pressedGlassCount++
+            scrolling = false
+            glassIdleHandler.removeCallbacks(glassIdleRunnable)
+            floatingGlasses.forEach {
+                it.enableDynamicBackground = true
+                it.invalidate()
+            }
+        } else {
+            pressedGlassCount = (pressedGlassCount - 1).coerceAtLeast(0)
+            if (pressedGlassCount == 0) {
+                // 回弹动画期间仍保持动态采样，动画结束后恢复常规降频策略
+                glassIdleHandler.removeCallbacks(glassIdleRunnable)
+                glassIdleHandler.postDelayed(glassIdleRunnable, PRESS_RELEASE_KEEP_MS)
+            }
+        }
     }
 
     private fun applyGlassDynamicPolicy() {
@@ -331,13 +359,13 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         }
 
         com.liuli.weather.ui.common.GlassPressEffect.attach(
-            binding.glassTopbar, binding.tvTitle
+            binding.glassTopbar, { onGlassPressed(it) }, binding.tvTitle
         )
         com.liuli.weather.ui.common.GlassPressEffect.attach(
-            binding.glassBtnLocation, binding.btnLocations
+            binding.glassBtnLocation, { onGlassPressed(it) }, binding.btnLocations
         )
         com.liuli.weather.ui.common.GlassPressEffect.attach(
-            binding.glassBtnSettings, binding.btnSettings
+            binding.glassBtnSettings, { onGlassPressed(it) }, binding.btnSettings
         )
     }
 
@@ -557,5 +585,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
         /** 静止时内容卡片的刷新间隔（背景动画跟随，兼顾观感与耗电）。 */
         private const val CARD_REFRESH_INTERVAL_MS = 250L
+
+        /** 松开按压后保持动态采样的时长（覆盖回弹动画，之后降频）。 */
+        private const val PRESS_RELEASE_KEEP_MS = 420L
     }
 }
