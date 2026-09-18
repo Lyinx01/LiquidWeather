@@ -12,8 +12,8 @@ import com.example.liquidglass.LiquidGlassView
  */
 object GlassPressEffect {
 
-    /** 按住时的放大倍数（iOS 液态玻璃的"凝胶鼓起"效果）。 */
-    private const val PRESSED_SCALE = 1.12f
+    /** 按住时的放大倍数（液滴"鼓起"效果，1.5x 为明显的放大反馈）。 */
+    private const val PRESSED_SCALE = 1.5f
 
     /** 按住时的高光染色（ARGB，alpha 即强度）。 */
     private const val PRESSED_HIGHLIGHT = 0x5CFFFFFF
@@ -26,10 +26,10 @@ object GlassPressEffect {
             glassView.animate()
                 .scaleX(if (down) PRESSED_SCALE else 1f)
                 .scaleY(if (down) PRESSED_SCALE else 1f)
-                .setDuration(if (down) 110L else 300L)
+                .setDuration(if (down) 140L else 380L)
                 .setInterpolator(
-                    // 按下略带回弹，松开用强 overshoot 模拟玻璃回弹
-                    if (down) DecelerateInterpolator() else OvershootInterpolator(2.2f)
+                    // 按下用减速插值铺开，松开用 overshoot 回弹（大位移下张力略降防抖）
+                    if (down) DecelerateInterpolator() else OvershootInterpolator(1.8f)
                 )
                 .start()
         }
