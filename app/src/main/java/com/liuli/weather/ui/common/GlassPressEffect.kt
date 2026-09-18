@@ -12,8 +12,8 @@ import com.example.liquidglass.LiquidGlassView
  */
 object GlassPressEffect {
 
-    /** 按住时的放大倍数（液滴"鼓起"效果，1.5x 为明显的放大反馈）。 */
-    private const val PRESSED_SCALE = 1.5f
+    /** 按住时的放大倍数（1.3x：明显但不突兀的凝胶反馈）。 */
+    private const val PRESSED_SCALE = 1.3f
 
     /** 按住时的高光染色（ARGB，alpha 即强度）。 */
     private const val PRESSED_HIGHLIGHT = 0x5CFFFFFF
