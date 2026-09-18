@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 天空背景层：给 Liquid Glass 提供折射细节（保持完全静态，玻璃据此采样） -->
+    <!-- 天空背景层：给 Liquid Glass 提供折射细节（云层缓慢飘移，玻璃实时折射） -->
     <FrameLayout
         android:id="@+id/bg_container"
         android:layout_width="match_parent"
@@ -21,7 +21,7 @@
             android:id="@+id/cloud1"
             android:layout_width="460dp"
             android:layout_height="200dp"
-            android:layout_marginTop="90dp"
+            android:layout_marginTop="70dp"
             android:alpha="0.5"
             android:scaleType="fitXY"
             android:src="@drawable/cloud_soft" />
@@ -34,6 +34,48 @@
             android:alpha="0.35"
             android:scaleType="fitXY"
             android:src="@drawable/cloud_soft" />
+
+        <ImageView
+            android:id="@+id/cloud3"
+            android:layout_width="380dp"
+            android:layout_height="170dp"
+            android:layout_marginTop="560dp"
+            android:alpha="0.4"
+            android:scaleType="fitXY"
+            android:src="@drawable/cloud_soft" />
+
+        <!-- 日出日落光晕（晴天缓慢呼吸） -->
+        <ImageView
+            android:id="@+id/glow_overlay"
+            android:layout_width="320dp"
+            android:layout_height="320dp"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:alpha="0.7"
+            android:scaleType="fitXY"
+            android:src="@drawable/sun_glow"
+            android:visibility="gone" />
+
+        <!-- 星空（夜间闪烁） -->
+        <ImageView
+            android:id="@+id/stars_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0.7"
+            android:scaleType="centerCrop"
+            android:src="@drawable/stars_dots"
+            android:visibility="gone" />
+
+        <!-- 雨丝（降雨时下落） -->
+        <ImageView
+            android:id="@+id/rain_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0.45"
+            android:scaleType="fitXY"
+            android:src="@drawable/rain_streaks"
+            android:visibility="gone" />
     </FrameLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -126,11 +168,11 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="32dp"
-                    app:cornerRadius="28dp"
-                    app:dispersionStrength="0.25"
+                    app:bevelWidth="36dp"
+                    app:cornerRadius="32dp"
+                    app:dispersionStrength="0.32"
                     app:glassMaterial="regular"
-                    app:refractionHeight="28dp"
+                    app:refractionHeight="34dp"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -168,11 +210,11 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="32dp"
-                    app:cornerRadius="28dp"
-                    app:dispersionStrength="0.25"
+                    app:bevelWidth="36dp"
+                    app:cornerRadius="32dp"
+                    app:dispersionStrength="0.32"
                     app:glassMaterial="regular"
-                    app:refractionHeight="28dp"
+                    app:refractionHeight="34dp"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -208,11 +250,11 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="32dp"
-                    app:cornerRadius="28dp"
-                    app:dispersionStrength="0.25"
+                    app:bevelWidth="36dp"
+                    app:cornerRadius="32dp"
+                    app:dispersionStrength="0.32"
                     app:glassMaterial="regular"
-                    app:refractionHeight="28dp"
+                    app:refractionHeight="34dp"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -250,11 +292,11 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="32dp"
-                    app:cornerRadius="28dp"
-                    app:dispersionStrength="0.25"
+                    app:bevelWidth="36dp"
+                    app:cornerRadius="32dp"
+                    app:dispersionStrength="0.32"
                     app:glassMaterial="regular"
-                    app:refractionHeight="28dp"
+                    app:refractionHeight="34dp"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -349,7 +391,7 @@
         android:paddingEnd="28dp"
         app:bevelWidth="26dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.25"
+        app:dispersionStrength="0.32"
         app:glassMaterial="regular"
         app:refractionHeight="20dp"
         app:sensorHighlight="true">
@@ -378,7 +420,7 @@
         android:layout_marginBottom="28dp"
         app:bevelWidth="24dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.25"
+        app:dispersionStrength="0.32"
         app:glassMaterial="regular"
         app:refractionHeight="20dp"
         app:sensorHighlight="true">
@@ -404,7 +446,7 @@
         android:layout_marginBottom="28dp"
         app:bevelWidth="24dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.25"
+        app:dispersionStrength="0.32"
         app:glassMaterial="regular"
         app:refractionHeight="20dp"
         app:sensorHighlight="true">

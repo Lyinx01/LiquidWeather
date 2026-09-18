@@ -1,12 +1,15 @@
 package com.liuli.weather
 
 import android.Manifest
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -60,9 +63,28 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private val floatingGlasses: List<LiquidGlassView> by lazy {
         listOf(binding.glassTopbar, binding.glassBtnLocation, binding.glassBtnSettings)
     }
+
+    // 内容卡片：静止时开启动态采样以折射飘移的云层，滚动时关闭保证流畅
+    private val cardGlasses: List<LiquidGlassView> by lazy {
+        listOf(binding.glassHourly, binding.glassDaily, binding.glassDetails, binding.glassAqi)
+    }
     private val glassIdleHandler = Handler(Looper.getMainLooper())
-    private val glassIdleRunnable = Runnable { setFloatingGlassDynamic(false) }
-    private var floatingGlassDynamic = false
+    private val glassIdleRunnable = Runnable { onScrollIdle() }
+    private var scrolling = false
+
+    /** 卡片低频刷新：只做 invalidate，库在背景哈希变化时才真正重采，避免逐帧全量采样。 */
+    private val cardRefreshRunnable = object : Runnable {
+        override fun run() {
+            cardGlasses.forEach { it.invalidate() }
+            if (backgroundAnimating && !scrolling) {
+                glassIdleHandler.postDelayed(this, CARD_REFRESH_INTERVAL_MS)
+            }
+        }
+    }
+
+    // 背景动画（云层飘移/星空闪烁/雨丝下落/光晕呼吸）
+    private val backgroundAnimators = mutableListOf<android.animation.Animator>()
+    private var backgroundAnimating = true
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -96,6 +118,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         setupGlass()
         setupLists()
         setupTopBar()
+        setupBackgroundAnimations()
         observe()
 
         binding.swipeRefresh.setOnRefreshListener { viewModel.refresh() }
@@ -139,47 +162,46 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     }
 
     /**
-     * 玻璃折射分两类：
-     * - 悬浮控件折射滚到下方的实时内容（iOS 导航栏效果）：采样源为含滚动内容的
-     *   根布局 mainRoot；动态采样只在滚动期间及数据刷新后短暂开启，静止即降频关闭，
-     *   避免每帧全屏重采的持续开销。
-     * - 内容卡片磨砂静态天空背景（bg_container）：库缓存背景位图，滚动仅做位移映射。
+     * 玻璃折射分两类，采样策略按滚动状态切换：
+     * - 悬浮控件（顶栏/底部按钮）折射滚到下方的实时内容（iOS 导航栏效果），
+     *   采样源为含滚动内容的根布局 mainRoot；动态采样只在滚动期间开启。
+     * - 内容卡片采样天空背景层 bgContainer；静止时开启动态采样以实时折射
+     *   飘移的云层，滚动期间关闭（此时库用缓存位图做位移映射，避免逐帧重采）。
      */
     private fun setupGlass() {
-        listOf(
-            binding.glassTopbar,
-            binding.glassBtnLocation,
-            binding.glassBtnSettings
-        ).forEach { glass: LiquidGlassView ->
-            glass.backdropSource = binding.mainRoot
-        }
-        listOf(
-            binding.glassHourly,
-            binding.glassDaily,
-            binding.glassDetails,
-            binding.glassAqi
-        ).forEach { glass: LiquidGlassView ->
-            glass.backdropSource = binding.bgContainer
-        }
+        floatingGlasses.forEach { it.backdropSource = binding.mainRoot }
+        cardGlasses.forEach { it.backdropSource = binding.bgContainer }
 
         binding.scroll.setOnScrollChangeListener { _, _, _, _, _ ->
-            onGlassActivity()
+            onScrollStarted()
         }
     }
 
-    /** 有滚动/内容变化：立即开启动态采样，并重置静止降频计时。 */
-    private fun onGlassActivity() {
-        setFloatingGlassDynamic(true)
+    /** 滚动中：悬浮控件动态采样（实时折射内容），卡片关闭动态保流畅。 */
+    private fun onScrollStarted() {
+        scrolling = true
         glassIdleHandler.removeCallbacks(glassIdleRunnable)
         glassIdleHandler.postDelayed(glassIdleRunnable, GLASS_IDLE_DELAY_MS)
+        applyGlassDynamicPolicy()
     }
 
-    private fun setFloatingGlassDynamic(enabled: Boolean) {
-        if (floatingGlassDynamic == enabled) return
-        floatingGlassDynamic = enabled
-        floatingGlasses.forEach { it.enableDynamicBackground = enabled }
-        if (enabled) {
-            floatingGlasses.forEach { it.invalidate() }
+    /** 滚动停止/数据刷新后：恢复静止策略（卡片动态折射飘移云层）。 */
+    private fun onScrollIdle() {
+        scrolling = false
+        applyGlassDynamicPolicy()
+    }
+
+    private fun applyGlassDynamicPolicy() {
+        val animating = backgroundAnimating
+        // 悬浮控件：仅滚动期间逐帧采样（实时折射滚过下方的内容）
+        floatingGlasses.forEach { it.enableDynamicBackground = scrolling && animating }
+        // 内容卡片：始终不做逐帧采样，改用低频 invalidate 跟随背景动画
+        cardGlasses.forEach { it.enableDynamicBackground = false }
+        (floatingGlasses + cardGlasses).forEach { it.invalidate() }
+
+        glassIdleHandler.removeCallbacks(cardRefreshRunnable)
+        if (animating && !scrolling) {
+            glassIdleHandler.postDelayed(cardRefreshRunnable, CARD_REFRESH_INTERVAL_MS)
         }
     }
 
@@ -201,8 +223,97 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         binding.rvAlerts.isNestedScrollingEnabled = false
         binding.rvAlerts.visibility = View.GONE
 
-        // 预警玻璃卡片同样只采样静态天空背景
+        // 预警玻璃卡片同样采样天空背景
         alertAdapter.backdropSource = binding.bgContainer
+    }
+
+    // ------------------------------------------------- background animations
+
+    /** 云层缓慢飘移、星空/光晕呼吸、雨丝下落；暂停时全部冻结省电。 */
+    private fun setupBackgroundAnimations() {
+        val screenW = resources.displayMetrics.widthPixels.toFloat()
+
+        // 动画图层走硬件层：alpha/位移由 GPU 合成，避免每帧软件重绘整屏
+        listOf(
+            binding.cloud1, binding.cloud2, binding.cloud3,
+            binding.starsOverlay, binding.rainOverlay, binding.glowOverlay
+        ).forEach { it.setLayerType(View.LAYER_TYPE_HARDWARE, null) }
+
+        // 云层横向飘移（周期很长，营造缓慢流动感）
+        backgroundAnimators += driftAnimator(binding.cloud1, -700f, screenW + 250f, 200_000L)
+        backgroundAnimators += driftAnimator(binding.cloud2, screenW + 300f, -800f, 260_000L)
+        backgroundAnimators += driftAnimator(binding.cloud3, -600f, screenW + 200f, 320_000L)
+
+        // 星空闪烁（透明度呼吸）
+        backgroundAnimators += ObjectAnimator.ofFloat(
+            binding.starsOverlay, View.ALPHA, 0.45f, 0.95f
+        ).apply {
+            duration = 3200L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = LinearInterpolator()
+        }
+
+        // 太阳光晕呼吸
+        backgroundAnimators += ObjectAnimator.ofFloat(
+            binding.glowOverlay, View.ALPHA, 0.5f, 0.95f
+        ).apply {
+            duration = 5200L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = LinearInterpolator()
+        }
+
+        // 雨丝下落（纵向循环滚动）
+        backgroundAnimators += ObjectAnimator.ofFloat(
+            binding.rainOverlay, View.TRANSLATION_Y, -screenW * 0.5f, screenW * 0.5f
+        ).apply {
+            duration = 1400L
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = LinearInterpolator()
+        }
+
+        backgroundAnimators.forEach { it.start() }
+    }
+
+    private fun driftAnimator(
+        view: View,
+        from: Float,
+        to: Float,
+        duration: Long
+    ): ObjectAnimator = ObjectAnimator.ofFloat(view, View.TRANSLATION_X, from, to).apply {
+        this.duration = duration
+        repeatCount = ValueAnimator.INFINITE
+        interpolator = LinearInterpolator()
+    }
+
+    /** 按天气切换动态背景层的可见性。 */
+    private fun updateBackgroundLayers(skycon: String?) {
+        val code = skycon ?: "CLEAR_DAY"
+        val isNight = WeatherCodeMapper.isNight(code)
+        val isRain = code.contains("RAIN") || code == "THUNDER_SHOWER"
+        val isClear = code == "CLEAR_DAY"
+
+        binding.starsOverlay.visibility = if (isNight) View.VISIBLE else View.GONE
+        binding.rainOverlay.visibility = if (isRain) View.VISIBLE else View.GONE
+        binding.glowOverlay.visibility = if (isClear) View.VISIBLE else View.GONE
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 冻结背景动画并关闭所有动态采样，避免后台耗电
+        backgroundAnimating = false
+        backgroundAnimators.forEach { it.pause() }
+        glassIdleHandler.removeCallbacks(cardRefreshRunnable)
+        floatingGlasses.forEach { it.enableDynamicBackground = false }
+        cardGlasses.forEach { it.enableDynamicBackground = false }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        backgroundAnimating = true
+        backgroundAnimators.forEach { it.resume() }
+        applyGlassDynamicPolicy()
     }
 
     private fun setupTopBar() {
@@ -256,6 +367,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private fun render(w: Weather) {
         val imperial = settings?.imperialUnits == true
         binding.bgSky.setBackgroundResource(WeatherCodeMapper.backgroundFor(w.current.skycon))
+        updateBackgroundLayers(w.current.skycon)
         binding.tvTitle.text = w.location.name
         binding.tvTemp.text = "${UnitConverter.displayInt(w.current.temperature, imperial)}°"
         binding.tvCondition.text = w.current.skyconName
@@ -284,8 +396,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         binding.rvAlerts.visibility =
             if (w.alerts.isEmpty()) View.GONE else View.VISIBLE
 
-        // 数据更新后让悬浮玻璃的折射短暂动态刷新一次
-        onGlassActivity()
+        // 数据更新后让玻璃的折射立即刷新一次
+        applyGlassDynamicPolicy()
     }
 
     private fun setCardsVisible(visible: Boolean) {
@@ -430,6 +542,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     override fun onDestroy() {
         super.onDestroy()
         glassIdleHandler.removeCallbacks(glassIdleRunnable)
+        backgroundAnimators.forEach { it.cancel() }
+        backgroundAnimators.clear()
     }
 
     companion object {
@@ -440,5 +554,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
         /** 滚动停止多久后关闭悬浮玻璃的动态采样（降频节能）。 */
         private const val GLASS_IDLE_DELAY_MS = 250L
+
+        /** 静止时内容卡片的刷新间隔（背景动画跟随，兼顾观感与耗电）。 */
+        private const val CARD_REFRESH_INTERVAL_MS = 250L
     }
 }
