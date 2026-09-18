@@ -64,6 +64,10 @@
     <string name="settings_ow_label">OpenWeather API Key（全球城市）</string>
     <string name="settings_ow_hint">粘贴 OpenWeather Key</string>
     <string name="settings_get_ow_key">没有 Key？前往 home.openweathermap.org 免费申请 →</string>
+    <string name="settings_units_label">温度单位</string>
+    <string name="units_metric">公制（°C）</string>
+    <string name="units_imperial">英制（°F）</string>
+    <string name="settings_units_note">单位只影响显示；API 请求始终使用摄氏度并按需换算。</string>
     <string name="settings_keys_note">只需填写当前选用数据源的 Key；和风免费档每日 1000 次、OpenWeather 免费档每日 1000 次、AccuWeather 免费档每日 50 次。切换数据源保存后主页会自动刷新。</string>
     <string name="token_saved">已保存</string>
     <string name="no_browser">未找到可用的浏览器</string>

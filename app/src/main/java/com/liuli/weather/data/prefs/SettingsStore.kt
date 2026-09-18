@@ -120,6 +120,11 @@ class SettingsStore(context: Context) {
         return true
     }
 
+    /** true = 英制（°F），false = 公制（°C）。 */
+    var imperialUnits: Boolean
+        get() = prefs.getBoolean(KEY_IMPERIAL, false)
+        set(value) = prefs.edit().putBoolean(KEY_IMPERIAL, value).apply()
+
     /** 把 AccuWeather 解析出的位置 Key 缓存到对应城市，避免重复消耗定位配额。 */
     fun updateLocationAccuKey(loc: LocationInfo, key: String): Boolean {
         val list = locations().toMutableList()
@@ -141,6 +146,7 @@ class SettingsStore(context: Context) {
         private const val KEY_OW_TOKEN = "ow_token"
         private const val KEY_QW_TOKEN = "qw_token"
         private const val KEY_SOURCE = "weather_source"
+        private const val KEY_IMPERIAL = "imperial_units"
         private const val KEY_LOCATIONS = "saved_locations"
         private const val KEY_CURRENT = "current_index"
         private const val KEY_LAST_SUCCESS = "last_success_at"

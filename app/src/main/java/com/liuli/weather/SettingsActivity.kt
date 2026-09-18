@@ -4,8 +4,6 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -20,6 +18,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private lateinit var store: SettingsStore
+
+    /** 各数据源的 Key 输入草稿：进入页面时加载，保存时统一写回。 */
+    private val keyDrafts = mutableMapOf<String, String>()
 
     /** 数据源展示顺序与弹窗选项。 */
     private val sourceOrder = listOf(
@@ -47,33 +48,36 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         store = SettingsStore(this)
-        binding.etToken.setText(store.token ?: "")
-        binding.etAccuToken.setText(store.accuToken ?: "")
-        binding.etOwToken.setText(store.owToken ?: "")
-        binding.etQwToken.setText(store.qwToken ?: "")
+        keyDrafts[SettingsStore.SOURCE_CAIYUN] = store.token ?: ""
+        keyDrafts[SettingsStore.SOURCE_QWEATHER] = store.qwToken ?: ""
+        keyDrafts[SettingsStore.SOURCE_ACCU] = store.accuToken ?: ""
+        keyDrafts[SettingsStore.SOURCE_OPENWEATHER] = store.owToken ?: ""
 
         binding.sourceRow.setOnClickListener { showSourcePicker() }
+        binding.unitsRow.setOnClickListener { showUnitsPicker() }
         refreshSourceLabel()
+        refreshUnitsLabel()
 
         binding.btnSave.setOnClickListener {
-            store.token = binding.etToken.text.toString()
-            store.accuToken = binding.etAccuToken.text.toString()
-            store.owToken = binding.etOwToken.text.toString()
-            store.qwToken = binding.etQwToken.text.toString()
+            keyDrafts[binding.sourceRow.tag?.toString() ?: store.effectiveSource()] =
+                binding.etKey.text.toString()
+            store.token = keyDrafts[SettingsStore.SOURCE_CAIYUN]
+            store.qwToken = keyDrafts[SettingsStore.SOURCE_QWEATHER]
+            store.accuToken = keyDrafts[SettingsStore.SOURCE_ACCU]
+            store.owToken = keyDrafts[SettingsStore.SOURCE_OPENWEATHER]
             Toast.makeText(this, R.string.token_saved, Toast.LENGTH_SHORT).show()
-            // 保存一定带回 RESULT_OK，主页据此强制刷新以应用新数据源/Key
+            // 保存一定带回 RESULT_OK，主页据此强制刷新以应用新数据源/Key/单位
             setResult(RESULT_OK)
             finish()
         }
-
-        binding.tvGetToken.setOnClickListener { openUrl("https://dashboard.caiyunapp.com/") }
-        binding.tvGetQwKey.setOnClickListener { openUrl("https://console.qweather.com/") }
-        binding.tvGetAccuKey.setOnClickListener { openUrl("https://developer.accuweather.com/") }
-        binding.tvGetOwKey.setOnClickListener { openUrl("https://home.openweathermap.org/api_keys") }
     }
 
-    /** 数据源选择弹窗（breezy 风格）：未配置 Key 的源追加（未配置）提示。 */
+    // ---------------------------------------------------------------- pickers
+
     private fun showSourcePicker() {
+        // 切换前把当前输入框内容写回草稿
+        keyDrafts[store.effectiveSource()] = binding.etKey.text.toString()
+
         val labels = sourceOrder.map { sourceLabel(it) }.toTypedArray()
         val checked = sourceOrder.indexOf(store.effectiveSource()).coerceAtLeast(0)
         MaterialAlertDialogBuilder(this)
@@ -86,6 +90,25 @@ class SettingsActivity : AppCompatActivity() {
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
+
+    private fun showUnitsPicker() {
+        val labels = arrayOf(
+            getString(R.string.units_metric),
+            getString(R.string.units_imperial)
+        )
+        val checked = if (store.imperialUnits) 1 else 0
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.settings_units_label)
+            .setSingleChoiceItems(labels, checked) { dialog, which ->
+                store.imperialUnits = which == 1
+                refreshUnitsLabel()
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    // ---------------------------------------------------------------- labels
 
     private fun sourceLabel(source: String): String {
         val name = when (source) {
@@ -100,7 +123,52 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun refreshSourceLabel() {
         val source = store.effectiveSource()
+        binding.sourceRow.tag = source
         binding.tvSourceValue.text = sourceLabel(source)
+
+        binding.tvKeyLabel.setText(
+            when (source) {
+                SettingsStore.SOURCE_QWEATHER -> R.string.settings_qw_label
+                SettingsStore.SOURCE_ACCU -> R.string.settings_accu_label
+                SettingsStore.SOURCE_OPENWEATHER -> R.string.settings_ow_label
+                else -> R.string.settings_token_label
+            }
+        )
+        binding.etKey.hint = setText(
+            when (source) {
+                SettingsStore.SOURCE_QWEATHER -> R.string.settings_qw_hint
+                SettingsStore.SOURCE_ACCU -> R.string.settings_accu_hint
+                SettingsStore.SOURCE_OPENWEATHER -> R.string.settings_ow_hint
+                else -> R.string.settings_token_hint
+            }
+        )
+        binding.tvGetKey.text = setText(
+            when (source) {
+                SettingsStore.SOURCE_QWEATHER -> R.string.settings_get_qw_key
+                SettingsStore.SOURCE_ACCU -> R.string.settings_get_accu_key
+                SettingsStore.SOURCE_OPENWEATHER -> R.string.settings_get_ow_key
+                else -> R.string.settings_get_token
+            }
+        )
+        binding.etKey.setText(keyDrafts[source] ?: "")
+
+        binding.tvGetKey.setOnClickListener {
+            val url = when (source) {
+                SettingsStore.SOURCE_QWEATHER -> "https://console.qweather.com/"
+                SettingsStore.SOURCE_ACCU -> "https://developer.accuweather.com/"
+                SettingsStore.SOURCE_OPENWEATHER -> "https://home.openweathermap.org/api_keys"
+                else -> "https://dashboard.caiyunapp.com/"
+            }
+            openUrl(url)
+        }
+    }
+
+    private fun setText(resId: Int): CharSequence = getString(resId)
+
+    private fun refreshUnitsLabel() {
+        binding.tvUnitsValue.text =
+            if (store.imperialUnits) getString(R.string.units_imperial)
+            else getString(R.string.units_metric)
     }
 
     private fun openUrl(url: String) {

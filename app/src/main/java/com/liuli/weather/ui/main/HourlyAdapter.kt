@@ -13,22 +13,30 @@ import kotlin.math.roundToInt
 
 class HourlyAdapter : ListAdapter<HourlyWeather, HourlyAdapter.ViewHolder>(Diff) {
 
+    /** true = 显示 °F。 */
+    var imperialUnits: Boolean = false
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemHourlyBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position), position == 0)
+        holder.bind(getItem(position), position == 0, imperialUnits)
     }
 
     class ViewHolder(private val binding: ItemHourlyBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: HourlyWeather, isFirst: Boolean) {
+        fun bind(item: HourlyWeather, isFirst: Boolean, imperial: Boolean) {
             binding.tvTime.text = if (isFirst) "现在" else TimeUtils.hourLabel(item.time)
             binding.ivIcon.setImageResource(WeatherCodeMapper.iconFor(item.skycon))
-            binding.tvTemp.text = "${item.temperature.roundToInt()}°"
+            binding.tvTemp.text =
+                "${com.liuli.weather.util.UnitConverter.displayInt(item.temperature, imperial)}°"
             val prob = item.precipProbability
             if (prob != null && prob >= 20) {
                 binding.tvProb.visibility = android.view.View.VISIBLE

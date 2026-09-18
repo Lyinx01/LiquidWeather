@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_settings"
@@ -56,12 +57,12 @@
                 android:layout_marginStart="8dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_chevron_right"
-                app:tint="#99FFFFFF"
-                xmlns:app="http://schemas.android.com/apk/res-auto" />
+                app:tint="#99FFFFFF" />
         </LinearLayout>
 
-        <!-- 彩云 Token -->
+        <!-- API Key（标题随数据源变化） -->
         <TextView
+            android:id="@+id/tv_key_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
@@ -71,7 +72,7 @@
             android:textSize="14sp" />
 
         <EditText
-            android:id="@+id/et_token"
+            android:id="@+id/et_key"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
@@ -88,7 +89,7 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/tv_get_token"
+            android:id="@+id/tv_get_key"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -97,121 +98,58 @@
             android:textColor="@color/link"
             android:textSize="13sp" />
 
-        <!-- 和风天气 Key -->
+        <!-- 温度单位 -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:alpha="0.8"
-            android:text="@string/settings_qw_label"
+            android:text="@string/settings_units_label"
             android:textColor="@color/white"
             android:textSize="14sp" />
 
-        <EditText
-            android:id="@+id/et_qw_token"
+        <LinearLayout
+            android:id="@+id/units_row"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:layout_marginTop="10dp"
             android:background="@drawable/bg_search"
-            android:hint="@string/settings_qw_hint"
-            android:importantForAutofill="no"
-            android:inputType="text"
-            android:maxLines="1"
-            android:minHeight="48dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textColor="@color/white"
-            android:textColorHint="#80FFFFFF"
-            android:textSize="14sp" />
+            android:paddingEnd="16dp">
 
-        <TextView
-            android:id="@+id/tv_get_qw_key"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:padding="4dp"
-            android:text="@string/settings_get_qw_key"
-            android:textColor="@color/link"
-            android:textSize="13sp" />
+            <TextView
+                android:id="@+id/tv_units_value"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/white"
+                android:textSize="15sp" />
 
-        <!-- AccuWeather Key -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:alpha="0.8"
-            android:text="@string/settings_accu_label"
-            android:textColor="@color/white"
-            android:textSize="14sp" />
-
-        <EditText
-            android:id="@+id/et_accu_token"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_search"
-            android:hint="@string/settings_accu_hint"
-            android:importantForAutofill="no"
-            android:inputType="text"
-            android:maxLines="1"
-            android:minHeight="48dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textColor="@color/white"
-            android:textColorHint="#80FFFFFF"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_get_accu_key"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:padding="4dp"
-            android:text="@string/settings_get_accu_key"
-            android:textColor="@color/link"
-            android:textSize="13sp" />
-
-        <!-- OpenWeather Key -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:alpha="0.8"
-            android:text="@string/settings_ow_label"
-            android:textColor="@color/white"
-            android:textSize="14sp" />
-
-        <EditText
-            android:id="@+id/et_ow_token"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_search"
-            android:hint="@string/settings_ow_hint"
-            android:importantForAutofill="no"
-            android:inputType="text"
-            android:maxLines="1"
-            android:minHeight="48dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textColor="@color/white"
-            android:textColorHint="#80FFFFFF"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_get_ow_key"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:padding="4dp"
-            android:text="@string/settings_get_ow_key"
-            android:textColor="@color/link"
-            android:textSize="13sp" />
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_chevron_right"
+                app:tint="#99FFFFFF" />
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:alpha="0.55"
+            android:lineSpacingExtra="3dp"
+            android:text="@string/settings_units_note"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:alpha="0.55"
             android:lineSpacingExtra="3dp"
             android:text="@string/settings_keys_note"

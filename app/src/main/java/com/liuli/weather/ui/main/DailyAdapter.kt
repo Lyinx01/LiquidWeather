@@ -17,13 +17,20 @@ class DailyAdapter : ListAdapter<DailyWeather, DailyAdapter.ViewHolder>(Diff) {
     private var globalMin = 0.0
     private var globalMax = 1.0
 
+    /** true = 显示 °F。 */
+    var imperialUnits: Boolean = false
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemDailyBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position), globalMin, globalMax)
+        holder.bind(getItem(position), globalMin, globalMax, imperialUnits)
     }
 
     override fun submitList(list: List<DailyWeather>?) {
@@ -37,11 +44,12 @@ class DailyAdapter : ListAdapter<DailyWeather, DailyAdapter.ViewHolder>(Diff) {
     class ViewHolder(private val binding: ItemDailyBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: DailyWeather, globalMin: Double, globalMax: Double) {
+        fun bind(item: DailyWeather, globalMin: Double, globalMax: Double, imperial: Boolean) {
+            val u = com.liuli.weather.util.UnitConverter
             binding.tvWeek.text = TimeUtils.dayLabel(item.date)
             binding.ivIcon.setImageResource(WeatherCodeMapper.iconFor(item.skycon))
-            binding.tvMin.text = "${item.tempMin.roundToInt()}°"
-            binding.tvMax.text = "${item.tempMax.roundToInt()}°"
+            binding.tvMin.text = "${u.displayInt(item.tempMin, imperial)}°"
+            binding.tvMax.text = "${u.displayInt(item.tempMax, imperial)}°"
             binding.tempBar.setRange(globalMin, globalMax, item.tempMin, item.tempMax)
             val prob = item.precipProbability
             if (prob != null && prob >= 20) {

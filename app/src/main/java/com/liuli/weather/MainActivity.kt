@@ -37,6 +37,7 @@ import com.liuli.weather.ui.main.HourlyAdapter
 import com.liuli.weather.ui.main.MainUiState
 import com.liuli.weather.ui.main.MainViewModel
 import com.liuli.weather.util.TimeUtils
+import com.liuli.weather.util.UnitConverter
 import com.liuli.weather.util.WeatherCodeMapper
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -46,6 +47,9 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
+
+    /** 读单位等展示配置用（SharedPreferences 轻量实例）。 */
+    private val settings by lazy { com.liuli.weather.data.prefs.SettingsStore(this) }
 
     private val hourlyAdapter = HourlyAdapter()
     private val dailyAdapter = DailyAdapter()
@@ -250,15 +254,17 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     }
 
     private fun render(w: Weather) {
+        val imperial = settings?.imperialUnits == true
         binding.bgSky.setBackgroundResource(WeatherCodeMapper.backgroundFor(w.current.skycon))
         binding.tvTitle.text = w.location.name
-        binding.tvTemp.text = "${w.current.temperature.roundToInt()}°"
+        binding.tvTemp.text = "${UnitConverter.displayInt(w.current.temperature, imperial)}°"
         binding.tvCondition.text = w.current.skyconName
         val today = w.daily.firstOrNull()
         binding.tvTempRange.text = today?.let {
             getString(
                 R.string.temp_range,
-                it.tempMax.roundToInt(), it.tempMin.roundToInt()
+                UnitConverter.displayInt(it.tempMax, imperial),
+                UnitConverter.displayInt(it.tempMin, imperial)
             )
         } ?: ""
         binding.tvUpdated.text = getString(R.string.updated_at, TimeUtils.clockLabel(w.fetchedAt))
@@ -268,6 +274,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
         hourlyAdapter.submitList(w.hourly)
         dailyAdapter.submitList(w.daily)
+        hourlyAdapter.imperialUnits = imperial
+        dailyAdapter.imperialUnits = imperial
 
         detailsAdapter.submitList(buildDetails(w))
         renderAqi(w.current.aqi)
@@ -295,10 +303,11 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     private fun buildDetails(w: Weather): List<DetailItem> {
         val c = w.current
+        val imperial = settings?.imperialUnits == true
         val d0 = w.daily.firstOrNull()
         val items = mutableListOf(
             DetailItem(R.drawable.ic_d_temp, getString(R.string.detail_feels_like),
-                "${c.apparentTemperature.roundToInt()}°"),
+                "${UnitConverter.displayInt(c.apparentTemperature, imperial)}°"),
             DetailItem(R.drawable.ic_d_humidity, getString(R.string.detail_humidity),
                 "${(c.humidity * 100).roundToInt()}%"),
             DetailItem(R.drawable.ic_d_wind, getString(R.string.detail_wind),
