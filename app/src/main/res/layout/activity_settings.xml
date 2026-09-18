@@ -98,6 +98,51 @@
             android:textColor="@color/link"
             android:textSize="13sp" />
 
+        <!-- 和风天气 API Host（仅选和风时显示） -->
+        <LinearLayout
+            android:id="@+id/qw_host_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:alpha="0.8"
+                android:text="@string/settings_qw_host_label"
+                android:textColor="@color/white"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/et_qw_host"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_search"
+                android:hint="@string/settings_qw_host_hint"
+                android:importantForAutofill="no"
+                android:inputType="textUri"
+                android:maxLines="1"
+                android:minHeight="48dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textColor="@color/white"
+                android:textColorHint="#80FFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:alpha="0.55"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/settings_qw_host_note"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
+
         <!-- 温度单位 -->
         <TextView
             android:layout_width="wrap_content"

@@ -58,6 +58,9 @@
     <string name="settings_qw_label">和风天气 API Key（中国）</string>
     <string name="settings_qw_hint">粘贴和风天气 Key</string>
     <string name="settings_get_qw_key">没有 Key？前往 console.qweather.com 免费申请 →</string>
+    <string name="settings_qw_host_label">和风天气 API Host（新版控制台账号必填）</string>
+    <string name="settings_qw_host_hint">例如 xxx.re.qweatherapi.com</string>
+    <string name="settings_qw_host_note">2024 年后注册的和风控制台账号需在「控制台 → 设置 → API Host」查看专属域名并填到这里；旧免费账号留空即可（默认 devapi.qweather.com）。</string>
     <string name="settings_accu_label">AccuWeather API Key（全球城市）</string>
     <string name="settings_accu_hint">粘贴 AccuWeather Key</string>
     <string name="settings_get_accu_key">没有 Key？前往 developer.accuweather.com 免费申请 →</string>

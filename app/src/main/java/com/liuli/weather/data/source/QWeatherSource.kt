@@ -27,13 +27,24 @@ class QWeatherSource(private val settings: SettingsStore) : WeatherSource {
     override suspend fun getWeather(loc: LocationInfo): Weather {
         val token = settings.qwToken ?: throw ApiException("未设置和风天气 API Key")
         val location = String.format(Locale.US, "%.4f,%.4f", loc.lng, loc.lat)
-        val api = RetrofitClient.qwApi
 
-        val now = api.now(token, location).also { checkCode(it.code, "实时天气") }
-        val daily = api.daily7(token, location).also { checkCode(it.code, "每日预报") }
-        val hourly = api.hourly24(token, location).also { checkCode(it.code, "逐小时预报") }
+        // 新控制台账号使用专属 API Host 且用请求头认证；旧账号走默认 devapi + key 参数。
+        // 双认证同时带上（header + key 参数），服务端按自身体系取其一，简化用户配置。
+        val base = RetrofitClient.normalizeQwHost(settings.effectiveQwHost())
+        val isLegacyHost = base.contains("devapi.qweather.com")
+        val api = RetrofitClient.qwApi
+        val headerKey = if (isLegacyHost) null else token
+        val queryKey = if (isLegacyHost) token else null
+
+        val now = api.now("${base}v7/weather/now", headerKey, queryKey, location)
+            .also { checkCode(it.code, "实时天气") }
+        val daily = api.daily7("${base}v7/weather/7d", headerKey, queryKey, location)
+            .also { checkCode(it.code, "每日预报") }
+        val hourly = api.hourly24("${base}v7/weather/24h", headerKey, queryKey, location)
+            .also { checkCode(it.code, "逐小时预报") }
         val warning = try {
-            api.warning(token, location).also { checkCode(it.code, "气象预警") }
+            api.warning("${base}v7/warning/now", headerKey, queryKey, location)
+                .also { checkCode(it.code, "气象预警") }
         } catch (e: Exception) {
             null // 预警失败不阻塞主流程
         }
@@ -44,7 +55,7 @@ class QWeatherSource(private val settings: SettingsStore) : WeatherSource {
     private fun checkCode(code: String?, what: String) {
         if (code != "200") {
             val hint = when (code) {
-                "401", "403" -> "（Key 无效或未开通该接口）"
+                "401", "403" -> "（Key 无效、未开通该接口，或 API Host 与账号不匹配——新控制台账号请在设置中填写专属 API Host）"
                 "402" -> "（免费档调用次数已用完）"
                 "404" -> "（查询地区超出订阅范围）"
                 else -> ""

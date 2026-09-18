@@ -76,7 +76,6 @@ object RetrofitClient {
     private const val BASE_URL = "https://api.caiyunapp.com/"
     private const val ACCU_BASE_URL = "https://dataservice.accuweather.com/"
     private const val OW_BASE_URL = "https://api.openweathermap.org/"
-    private const val QW_BASE_URL = "https://devapi.qweather.com/"
 
     val api: CaiyunApi by lazy {
         val client = okhttp3.OkHttpClient.Builder()
@@ -123,11 +122,21 @@ object RetrofitClient {
             .readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
             .build()
         retrofit2.Retrofit.Builder()
-            .baseUrl(QW_BASE_URL)
+            // @Url 动态传完整地址，baseUrl 仅作占位
+            .baseUrl("https://api.qweather.com/")
             .client(client)
             .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
             .build()
             .create(QWeatherApi::class.java)
+    }
+
+    /** 把用户填写的和风 Host 规范化成带 scheme 的完整 base（兼容漏写 https://）。 */
+    fun normalizeQwHost(host: String): String {
+        val trimmed = host.trim().trimEnd('/')
+        val withScheme =
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) trimmed
+            else "https://$trimmed"
+        return "$withScheme/"
     }
 
     /** 彩云接口要求 token 为 Path 的一部分，坐标格式化成 4 位小数。 */

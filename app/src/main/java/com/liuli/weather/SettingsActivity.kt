@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -52,6 +53,7 @@ class SettingsActivity : AppCompatActivity() {
         keyDrafts[SettingsStore.SOURCE_QWEATHER] = store.qwToken ?: ""
         keyDrafts[SettingsStore.SOURCE_ACCU] = store.accuToken ?: ""
         keyDrafts[SettingsStore.SOURCE_OPENWEATHER] = store.owToken ?: ""
+        binding.etQwHost.setText(store.qwHost ?: "")
 
         binding.sourceRow.setOnClickListener { showSourcePicker() }
         binding.unitsRow.setOnClickListener { showUnitsPicker() }
@@ -65,6 +67,7 @@ class SettingsActivity : AppCompatActivity() {
             store.qwToken = keyDrafts[SettingsStore.SOURCE_QWEATHER]
             store.accuToken = keyDrafts[SettingsStore.SOURCE_ACCU]
             store.owToken = keyDrafts[SettingsStore.SOURCE_OPENWEATHER]
+            store.qwHost = binding.etQwHost.text.toString()
             Toast.makeText(this, R.string.token_saved, Toast.LENGTH_SHORT).show()
             // 保存一定带回 RESULT_OK，主页据此强制刷新以应用新数据源/Key/单位
             setResult(RESULT_OK)
@@ -134,23 +137,22 @@ class SettingsActivity : AppCompatActivity() {
                 else -> R.string.settings_token_label
             }
         )
-        binding.etKey.hint = setText(
-            when (source) {
-                SettingsStore.SOURCE_QWEATHER -> R.string.settings_qw_hint
-                SettingsStore.SOURCE_ACCU -> R.string.settings_accu_hint
-                SettingsStore.SOURCE_OPENWEATHER -> R.string.settings_ow_hint
-                else -> R.string.settings_token_hint
-            }
-        )
-        binding.tvGetKey.text = setText(
-            when (source) {
-                SettingsStore.SOURCE_QWEATHER -> R.string.settings_get_qw_key
-                SettingsStore.SOURCE_ACCU -> R.string.settings_get_accu_key
-                SettingsStore.SOURCE_OPENWEATHER -> R.string.settings_get_ow_key
-                else -> R.string.settings_get_token
-            }
-        )
+        binding.etKey.hint = when (source) {
+            SettingsStore.SOURCE_QWEATHER -> getString(R.string.settings_qw_hint)
+            SettingsStore.SOURCE_ACCU -> getString(R.string.settings_accu_hint)
+            SettingsStore.SOURCE_OPENWEATHER -> getString(R.string.settings_ow_hint)
+            else -> getString(R.string.settings_token_hint)
+        }
+        binding.tvGetKey.text = when (source) {
+            SettingsStore.SOURCE_QWEATHER -> getString(R.string.settings_get_qw_key)
+            SettingsStore.SOURCE_ACCU -> getString(R.string.settings_get_accu_key)
+            SettingsStore.SOURCE_OPENWEATHER -> getString(R.string.settings_get_ow_key)
+            else -> getString(R.string.settings_get_token)
+        }
         binding.etKey.setText(keyDrafts[source] ?: "")
+
+        binding.qwHostContainer.visibility =
+            if (source == SettingsStore.SOURCE_QWEATHER) View.VISIBLE else View.GONE
 
         binding.tvGetKey.setOnClickListener {
             val url = when (source) {
@@ -162,8 +164,6 @@ class SettingsActivity : AppCompatActivity() {
             openUrl(url)
         }
     }
-
-    private fun setText(resId: Int): CharSequence = getString(resId)
 
     private fun refreshUnitsLabel() {
         binding.tvUnitsValue.text =

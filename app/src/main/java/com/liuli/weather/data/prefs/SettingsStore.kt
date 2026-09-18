@@ -29,6 +29,14 @@ class SettingsStore(context: Context) {
         get() = prefs.getString(KEY_QW_TOKEN, null)?.trim()?.takeIf { it.isNotEmpty() }
         set(value) = prefs.edit().putString(KEY_QW_TOKEN, value?.trim()).apply()
 
+    /** 和风天气 API Host：旧账号 devapi.qweather.com；新控制台账号用专属 Host。 */
+    var qwHost: String?
+        get() = prefs.getString(KEY_QW_HOST, null)?.trim()?.takeIf { it.isNotEmpty() }
+        set(value) = prefs.edit().putString(KEY_QW_HOST, value?.trim()).apply()
+
+    fun effectiveQwHost(): String =
+        qwHost ?: DEFAULT_QW_HOST
+
     var source: String
         get() = prefs.getString(KEY_SOURCE, SOURCE_CAIYUN) ?: SOURCE_CAIYUN
         set(value) = prefs.edit().putString(KEY_SOURCE, value).apply()
@@ -145,6 +153,8 @@ class SettingsStore(context: Context) {
         private const val KEY_ACCU_TOKEN = "accu_token"
         private const val KEY_OW_TOKEN = "ow_token"
         private const val KEY_QW_TOKEN = "qw_token"
+        private const val KEY_QW_HOST = "qw_host"
+        const val DEFAULT_QW_HOST = "devapi.qweather.com"
         private const val KEY_SOURCE = "weather_source"
         private const val KEY_IMPERIAL = "imperial_units"
         private const val KEY_LOCATIONS = "saved_locations"
