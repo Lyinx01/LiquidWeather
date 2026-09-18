@@ -73,7 +73,14 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     private val settingsLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) { viewModel.refreshIfStale() }
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // 设置里可能改了数据源或 Key，保存后强制刷新
+            viewModel.refresh()
+        } else {
+            viewModel.refreshIfStale()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -297,7 +304,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             DetailItem(R.drawable.ic_d_wind, getString(R.string.detail_wind),
                 "${c.windDirection} ${c.windSpeed.roundToInt()}km/h"),
             DetailItem(R.drawable.ic_d_pressure, getString(R.string.detail_pressure),
-                "${(c.pressure / 100).roundToInt()} hPa"),
+                "${c.pressure.roundToInt()} hPa"),
             DetailItem(R.drawable.ic_d_cloud, getString(R.string.detail_cloud),
                 "${(c.cloudRate * 100).roundToInt()}%"),
             DetailItem(R.drawable.ic_d_uv, getString(R.string.detail_uv),

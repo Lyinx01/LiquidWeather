@@ -17,6 +17,20 @@ class SettingsStore(context: Context) {
         get() = prefs.getString(KEY_TOKEN, null)?.trim()?.takeIf { it.isNotEmpty() }
         set(value) = prefs.edit().putString(KEY_TOKEN, value?.trim()).apply()
 
+    var accuToken: String?
+        get() = prefs.getString(KEY_ACCU_TOKEN, null)?.trim()?.takeIf { it.isNotEmpty() }
+        set(value) = prefs.edit().putString(KEY_ACCU_TOKEN, value?.trim()).apply()
+
+    var source: String
+        get() = prefs.getString(KEY_SOURCE, SOURCE_CAIYUN) ?: SOURCE_CAIYUN
+        set(value) = prefs.edit().putString(KEY_SOURCE, value).apply()
+
+    fun effectiveSource(): String = source
+
+    /** 当前数据源是否已配置 Key。 */
+    fun hasTokenForSource(source: String): Boolean =
+        if (source == SOURCE_ACCU) accuToken != null else token != null
+
     var lastSuccessAt: Long
         get() = prefs.getLong(KEY_LAST_SUCCESS, 0L)
         set(value) = prefs.edit().putLong(KEY_LAST_SUCCESS, value).apply()
@@ -94,8 +108,23 @@ class SettingsStore(context: Context) {
         return true
     }
 
+    /** 把 AccuWeather 解析出的位置 Key 缓存到对应城市，避免重复消耗定位配额。 */
+    fun updateLocationAccuKey(loc: LocationInfo, key: String): Boolean {
+        val list = locations().toMutableList()
+        val idx = list.indexOfFirst { it.sameAs(loc) }
+        if (idx < 0 || list[idx].accuKey == key) return false
+        list[idx] = list[idx].copy(accuKey = key)
+        saveLocations(list)
+        return true
+    }
+
     companion object {
+        const val SOURCE_CAIYUN = "caiyun"
+        const val SOURCE_ACCU = "accu"
+
         private const val KEY_TOKEN = "caiyun_token"
+        private const val KEY_ACCU_TOKEN = "accu_token"
+        private const val KEY_SOURCE = "weather_source"
         private const val KEY_LOCATIONS = "saved_locations"
         private const val KEY_CURRENT = "current_index"
         private const val KEY_LAST_SUCCESS = "last_success_at"

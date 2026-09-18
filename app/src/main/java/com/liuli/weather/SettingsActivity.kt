@@ -36,21 +36,34 @@ class SettingsActivity : AppCompatActivity() {
 
         val store = SettingsStore(this)
         binding.etToken.setText(store.token ?: "")
+        binding.etAccuToken.setText(store.accuToken ?: "")
+        if (store.effectiveSource() == SettingsStore.SOURCE_ACCU) {
+            binding.rbAccu.isChecked = true
+        } else {
+            binding.rbCaiyun.isChecked = true
+        }
 
         binding.btnSave.setOnClickListener {
+            store.source =
+                if (binding.rbAccu.isChecked) SettingsStore.SOURCE_ACCU
+                else SettingsStore.SOURCE_CAIYUN
             store.token = binding.etToken.text.toString()
+            store.accuToken = binding.etAccuToken.text.toString()
             Toast.makeText(this, R.string.token_saved, Toast.LENGTH_SHORT).show()
+            // 保存一定带回 RESULT_OK，主页据此强制刷新以应用新数据源/Key
+            setResult(RESULT_OK)
             finish()
         }
 
-        binding.tvGetToken.setOnClickListener {
-            try {
-                startActivity(
-                    Intent(Intent.ACTION_VIEW, Uri.parse("https://dashboard.caiyunapp.com/"))
-                )
-            } catch (e: ActivityNotFoundException) {
-                Toast.makeText(this, R.string.no_browser, Toast.LENGTH_SHORT).show()
-            }
+        binding.tvGetToken.setOnClickListener { openUrl("https://dashboard.caiyunapp.com/") }
+        binding.tvGetAccuKey.setOnClickListener { openUrl("https://developer.accuweather.com/") }
+    }
+
+    private fun openUrl(url: String) {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, R.string.no_browser, Toast.LENGTH_SHORT).show()
         }
     }
 }

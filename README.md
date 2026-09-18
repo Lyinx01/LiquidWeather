@@ -2,7 +2,9 @@
 
 一款 **Liquid Glass（液态玻璃）风格** 的安卓天气应用。
 
-- **天气数据**：彩云天气 API v2.6（realtime / hourly / daily / alert 四接口）
+- **天气数据**：多数据源，设置页可切换
+  - 彩云天气 API v2.6（weather.json 合并接口，中国及亚太，含 AQI 与预警）
+  - AccuWeather（全球城市，免费档：当前 + 12 小时 + 5 日预报，每日 50 次调用）
 - **UI 库**：[QWEA0/Liquid-Glass-Android](https://github.com/QWEA0/Liquid-Glass-Android)（JitPack：`com.github.QWEA0:liquidglass:v2.0.10`）
 - **架构参考**：开源项目 [breezy-weather](https://github.com/breezy-weather/breezy-weather)（数据源 → 领域模型 → 卡片式主页的分层思路）
 
@@ -30,11 +32,19 @@ ViewModel + LiveData · Coroutines · Retrofit + Gson · JitPack
 4. 连接设备或启动模拟器（API 26+），点击 Run。
    - 命令行构建：`gradle wrapper && gradlew assembleDebug`（仓库未内置 wrapper jar，可由 Android Studio 自动生成或本机 gradle 生成一次）。
 
-## 配置彩云天气 Token（必须）
+## 配置 API Key（必须，二选一或都配）
 
-1. 前往 [dashboard.caiyunapp.com](https://dashboard.caiyunapp.com/) 注册并申请 **免费 Token**（个人开发者每日有一定免费调用量）。
-2. 启动 App 后会弹出提示 → 点「去设置」，或通过主页右上角 ⚙ 进入设置页粘贴 Token 并保存。
-3. Token 保存在本机 SharedPreferences，仅用于请求彩云 API。
+**彩云天气（默认数据源）**
+1. 前往 [dashboard.caiyunapp.com](https://dashboard.caiyunapp.com/) 注册并申请 **免费 Token**。
+2. 设置页粘贴 Token 并保存。
+
+**AccuWeather（全球城市）**
+1. 前往 [developer.accuweather.com](https://developer.accuweather.com/) 注册应用，获得 API Key（免费档 **每日 50 次调用**；每次刷新消耗 3 次——当前天气 + 逐小时 + 每日）。
+2. 设置页粘贴 Key 并将数据源切换为 AccuWeather，保存后主页会自动刷新。
+3. 首次使用某坐标时会调用一次位置解析（geoposition/search）换取 `locationKey` 并缓存到该城市，之后不再消耗。
+4. AccuWeather 免费档不含空气质量与预警，对应卡片自动隐藏；图标码已映射到应用内 skycon 图标体系。
+
+所有 Key 均保存在本机 SharedPreferences，仅用于请求对应天气 API。
 
 ## Liquid Glass 使用要点（来自该库的约束）
 

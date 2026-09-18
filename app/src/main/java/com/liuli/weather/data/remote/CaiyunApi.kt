@@ -74,6 +74,7 @@ data class CaiyunWeatherResponse(
 object RetrofitClient {
 
     private const val BASE_URL = "https://api.caiyunapp.com/"
+    private const val ACCU_BASE_URL = "https://dataservice.accuweather.com/"
 
     val api: CaiyunApi by lazy {
         val client = okhttp3.OkHttpClient.Builder()
@@ -86,6 +87,19 @@ object RetrofitClient {
             .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
             .build()
             .create(CaiyunApi::class.java)
+    }
+
+    val accuApi: AccuApi by lazy {
+        val client = okhttp3.OkHttpClient.Builder()
+            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+        retrofit2.Retrofit.Builder()
+            .baseUrl(ACCU_BASE_URL)
+            .client(client)
+            .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
+            .build()
+            .create(AccuApi::class.java)
     }
 
     /** 彩云接口要求 token 为 Path 的一部分，坐标格式化成 4 位小数。 */

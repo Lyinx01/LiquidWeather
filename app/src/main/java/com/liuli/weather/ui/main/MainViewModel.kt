@@ -27,7 +27,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun hasLocations(): Boolean = settings.locations().isNotEmpty()
 
-    fun hasToken(): Boolean = settings.token != null
+    fun hasToken(): Boolean = settings.hasTokenForSource(settings.effectiveSource())
 
     init {
         _locations.value = settings.locations()
@@ -94,7 +94,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 _state.value = MainUiState.Success(repo.getWeather(loc), fromCache = false)
             } catch (e: Exception) {
-                _state.value = MainUiState.Error(humanMessage(e), cached, settings.token == null)
+                val noToken = !settings.hasTokenForSource(settings.effectiveSource())
+                _state.value = MainUiState.Error(humanMessage(e), cached, noToken)
             }
         }
     }
@@ -103,8 +104,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         e is com.liuli.weather.data.remote.ApiException -> e.message ?: "接口返回错误"
         e is UnknownHostException -> "网络连接失败，请检查网络"
         e is retrofit2.HttpException -> when (e.code()) {
-            401, 403 -> "Token 无效或已过期，请在设置中检查"
+            401, 403 -> "Key 无效或已过期，请在设置中检查"
             429 -> "请求过于频繁，请稍后再试"
+            503 -> "调用次数已达上限（AccuWeather 免费档每日 50 次）"
             else -> "服务器错误（${e.code()}）"
         }
         else -> e.message ?: "加载失败"

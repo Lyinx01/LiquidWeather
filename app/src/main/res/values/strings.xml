@@ -31,8 +31,8 @@
     <string name="delete_city">删除城市</string>
     <string name="location_current">当前位置</string>
 
-    <string name="need_token_title">需要 API Token</string>
-    <string name="need_token_msg">琉璃天气使用彩云天气 API 获取数据。\n请先在设置中填写你的 Token（可在 dashboard.caiyunapp.com 免费申请）。</string>
+    <string name="need_token_title">需要 API Key</string>
+    <string name="need_token_msg">当前数据源还没有配置 API Key。\n请先在设置中填写对应平台的 Key 并选择数据源。</string>
 
     <!-- 详情项 -->
     <string name="detail_feels_like">体感温度</string>
@@ -47,10 +47,17 @@
     <string name="detail_sunset">日落</string>
 
     <!-- 设置页 -->
+    <string name="settings_source_label">数据源</string>
+    <string name="source_caiyun">彩云天气（中国及亚太）</string>
+    <string name="source_accu">AccuWeather（全球）</string>
     <string name="settings_token_label">彩云天气 API Token</string>
     <string name="settings_token_hint">粘贴你的 Token</string>
     <string name="settings_get_token">没有令牌？前往 dashboard.caiyunapp.com 申请 →</string>
+    <string name="settings_accu_label">AccuWeather API Key（全球城市）</string>
+    <string name="settings_accu_hint">粘贴 AccuWeather Key</string>
+    <string name="settings_get_accu_key">没有 Key？前往 developer.accuweather.com 免费申请 →</string>
+    <string name="settings_accu_note">AccuWeather 免费档每日 50 次调用（每次刷新消耗 3 次，位置解析 1 次仅首次），切换数据源后请手动下拉刷新。</string>
     <string name="token_saved">已保存</string>
     <string name="no_browser">未找到可用的浏览器</string>
-    <string name="settings_about">琉璃天气 v1.0.0\n\n数据来源：彩云天气 API（api.caiyunapp.com）\n玻璃效果：Liquid-Glass-Android（github.com/QWEA0）\n设计参考：开源项目 breezy-weather</string>
+    <string name="settings_about">琉璃天气 v1.1.0\n\n数据来源：彩云天气 API / AccuWeather\n玻璃效果：Liquid-Glass-Android（github.com/QWEA0）\n设计参考：开源项目 breezy-weather</string>
 </resources>
