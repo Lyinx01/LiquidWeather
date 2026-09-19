@@ -13,9 +13,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.liuli.weather.data.prefs.SettingsStore
 import com.liuli.weather.databinding.ActivitySettingsBinding
+import com.liuli.weather.ui.common.GlassPickerDialog
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -39,13 +39,13 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.scroll) { v, insets ->
             val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.root.updatePadding(
-                top = sys.top + (24 * resources.displayMetrics.density).toInt(),
-                bottom = sys.bottom + (24 * resources.displayMetrics.density).toInt(),
-                left = sys.left + (20 * resources.displayMetrics.density).toInt(),
-                right = sys.right + (20 * resources.displayMetrics.density).toInt()
+            v.updatePadding(
+                top = sys.top + dp(12),
+                bottom = sys.bottom + dp(20),
+                left = dp(4),
+                right = dp(4)
             )
             insets
         }
@@ -64,61 +64,83 @@ class SettingsActivity : AppCompatActivity() {
         refreshUnitsLabel()
         refreshLanguageLabel()
 
-        binding.btnSave.setOnClickListener {
-            keyDrafts[binding.sourceRow.tag?.toString() ?: store.effectiveSource()] =
-                binding.etKey.text.toString()
-            store.token = keyDrafts[SettingsStore.SOURCE_CAIYUN]
-            store.qwToken = keyDrafts[SettingsStore.SOURCE_QWEATHER]
-            store.accuToken = keyDrafts[SettingsStore.SOURCE_ACCU]
-            store.owToken = keyDrafts[SettingsStore.SOURCE_OPENWEATHER]
-            store.qwHost = binding.etQwHost.text.toString()
-            Toast.makeText(this, R.string.token_saved, Toast.LENGTH_SHORT).show()
-            // 保存一定带回 RESULT_OK，主页据此强制刷新以应用新数据源/Key/单位
-            setResult(RESULT_OK)
-            finish()
+        binding.btnSave.setOnClickListener { save() }
+
+        // 玻璃卡片嵌在 ScrollView 内，需显式指定采样源为根布局（含渐变装饰背景），
+        // 否则默认只捕获透明的直接父容器，看不到折射。
+        setupGlassCards()
+
+        com.liuli.weather.ui.common.GlassPressEffect.attach(
+            binding.glassSave, null, binding.btnSave
+        )
+    }
+
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
+
+    /** 让设置页所有玻璃卡片采样根布局背景层（含渐变与柔光装饰）。 */
+    private fun setupGlassCards() {
+        val scrollContent = binding.scroll.getChildAt(0) as? android.view.ViewGroup ?: return
+        for (i in 0 until scrollContent.childCount) {
+            val child = scrollContent.getChildAt(i)
+            if (child is com.example.liquidglass.LiquidGlassView) {
+                child.backdropSource = binding.root
+            }
         }
+        binding.glassSave.backdropSource = binding.root
+    }
+
+    // ---------------------------------------------------------------- save
+
+    private fun save() {
+        keyDrafts[binding.sourceRow.tag?.toString() ?: store.effectiveSource()] =
+            binding.etKey.text.toString()
+        store.token = keyDrafts[SettingsStore.SOURCE_CAIYUN]
+        store.qwToken = keyDrafts[SettingsStore.SOURCE_QWEATHER]
+        store.accuToken = keyDrafts[SettingsStore.SOURCE_ACCU]
+        store.owToken = keyDrafts[SettingsStore.SOURCE_OPENWEATHER]
+        store.qwHost = binding.etQwHost.text.toString()
+        Toast.makeText(this, R.string.token_saved, Toast.LENGTH_SHORT).show()
+        setResult(RESULT_OK)
+        finish()
     }
 
     // ---------------------------------------------------------------- pickers
 
     private fun showSourcePicker() {
-        // 切换前把当前输入框内容写回草稿
         keyDrafts[store.effectiveSource()] = binding.etKey.text.toString()
 
-        val labels = sourceOrder.map { sourceLabel(it) }.toTypedArray()
+        val labels = sourceOrder.map { sourceLabel(it) }
         val checked = sourceOrder.indexOf(store.effectiveSource()).coerceAtLeast(0)
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.settings_source_label)
-            .setSingleChoiceItems(labels, checked) { dialog, which ->
-                store.source = sourceOrder[which]
-                refreshSourceLabel()
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        GlassPickerDialog.show(
+            this,
+            getString(R.string.settings_source_label),
+            labels,
+            checked
+        ) { which ->
+            store.source = sourceOrder[which]
+            refreshSourceLabel()
+        }
     }
 
     private fun showUnitsPicker() {
-        val labels = arrayOf(
-            getString(R.string.units_metric),
-            getString(R.string.units_imperial)
-        )
-        val checked = if (store.imperialUnits) 1 else 0
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.settings_units_label)
-            .setSingleChoiceItems(labels, checked) { dialog, which ->
-                store.imperialUnits = which == 1
-                refreshUnitsLabel()
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        GlassPickerDialog.show(
+            this,
+            getString(R.string.settings_units_label),
+            listOf(
+                getString(R.string.units_metric),
+                getString(R.string.units_imperial)
+            ),
+            if (store.imperialUnits) 1 else 0
+        ) { which ->
+            store.imperialUnits = which == 1
+            refreshUnitsLabel()
+        }
     }
 
     /** 语言选择：跟随系统 / 简体中文 / 繁體中文 / English / 日本語。 */
     private fun showLanguagePicker() {
         val tags = arrayOf("", "zh-CN", "zh-TW", "en", "ja")
-        val labels = arrayOf(
+        val labels = listOf(
             getString(R.string.language_system),
             "简体中文", "繁體中文", "English", "日本語"
         )
@@ -126,30 +148,32 @@ class SettingsActivity : AppCompatActivity() {
         val checked = tags.indexOfFirst { it.isNotEmpty() && current.startsWith(it, ignoreCase = true) }
             .let { if (it >= 0) it else 0 }
 
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.settings_language_label)
-            .setSingleChoiceItems(labels, checked) { dialog, which ->
-                applyLanguage(tags[which])
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        GlassPickerDialog.show(
+            this,
+            getString(R.string.settings_language_label),
+            labels,
+            checked
+        ) { which ->
+            applyLanguage(tags[which])
+        }
     }
 
-    /** 应用语言：空串=跟随系统；切换后天气描述需按新语言重取。 */
+    /**
+     * 应用语言。
+     * AppCompatDelegate 会触发 Activity 重建（Android 13+ 由系统重建，低版本 AppCompat 重建）；
+     * 这里不再手动 recreate()，避免二次重建造成的闪屏。
+     * 过渡动画由 Theme.LiquidWeather.Settings 的 windowAnimationStyle 统一提供。
+     */
     private fun applyLanguage(tag: String) {
         val locales = if (tag.isEmpty()) {
             LocaleListCompat.getEmptyLocaleList()
         } else {
             LocaleListCompat.forLanguageTags(tag)
         }
-        AppCompatDelegate.setApplicationLocales(locales)
         // 缓存里的天气描述是旧语言，标记过期以强制按新语言重新请求
         store.lastSuccessAt = 0L
-        // 桌面小部件同步按新语言重绘
         com.liuli.weather.widget.WeatherWidgetProvider.updateAll(this)
-        // 系统应用语言是异步生效的，稍等片刻再重建界面，避免仍显示旧语言
-        binding.root.postDelayed({ recreate() }, 300L)
+        AppCompatDelegate.setApplicationLocales(locales)
     }
 
     // ---------------------------------------------------------------- labels
@@ -213,12 +237,13 @@ class SettingsActivity : AppCompatActivity() {
             else getString(R.string.units_metric)
     }
 
-    /** 当前语言标签：跟随系统时显示“跟随系统”，否则显示语言自称。 */
+    /** 当前语言标签：跟随系统时显示"跟随系统"，否则显示语言自称。 */
     private fun refreshLanguageLabel() {
         val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
         binding.tvLanguageValue.text = when {
             current.isEmpty() -> getString(R.string.language_system)
-            current.startsWith("zh", true) && (current.contains("TW", true) || current.contains("HK", true)) -> "繁體中文"
+            current.startsWith("zh", true) &&
+                (current.contains("TW", true) || current.contains("HK", true)) -> "繁體中文"
             current.startsWith("zh", true) -> "简体中文"
             current.startsWith("ja", true) -> "日本語"
             else -> "English"

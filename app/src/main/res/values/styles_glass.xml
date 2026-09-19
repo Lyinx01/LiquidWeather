@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 玻璃弹窗动画：淡入 + 轻微上浮放大，避免生硬弹出 -->
+    <style name="GlassDialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/glass_dialog_enter</item>
+        <item name="android:windowExitAnimation">@anim/glass_dialog_exit</item>
+    </style>
+</resources>

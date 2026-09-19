@@ -6,4 +6,22 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowBackground">@color/window_bg</item>
     </style>
+
+    <!--
+      设置页专用主题：窗口背景直接设为页面渐变。
+      切换语言会重建 Activity，若窗口背景是默认深色，重建瞬间会闪一下色差；
+      与页面背景一致后过渡几乎不可见。
+    -->
+    <style name="Theme.LiquidWeather.Settings" parent="Theme.LiquidWeather">
+        <item name="android:windowBackground">@drawable/bg_settings</item>
+        <item name="android:windowAnimationStyle">@style/GlassWindowAnimation</item>
+    </style>
+
+    <!-- 页面切换淡入淡出（替代默认的横向滑动，更贴合玻璃质感） -->
+    <style name="GlassWindowAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/glass_dialog_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/glass_page_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/glass_page_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/glass_dialog_exit</item>
+    </style>
 </resources>

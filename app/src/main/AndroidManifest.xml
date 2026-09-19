@@ -28,6 +28,7 @@
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
+            android:theme="@style/Theme.LiquidWeather.Settings"
             android:windowSoftInputMode="adjustResize" />
 
         <!-- 桌面天气小部件 -->

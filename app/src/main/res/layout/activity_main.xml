@@ -78,20 +78,15 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_refresh"
+    <!-- overScrollMode=never：关闭 Android 12+ 滑到边界时的拉伸回弹效果 -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <!-- overScrollMode=never：关闭 Android 12+ 滑到边界时的拉伸回弹效果 -->
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scroll"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:overScrollMode="never"
-            android:paddingTop="130dp"
-            android:scrollbars="none">
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingTop="130dp"
+        android:scrollbars="none">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -170,13 +165,15 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="36dp"
+                    app:aberrationIntensity="4.5"
+                    app:bevelWidth="40dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.32"
+                    app:dispersionStrength="0.45"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
-                    app:refractionHeight="34dp"
+                    app:displacementScale="110"
+                    app:refractionHeight="44dp"
                     app:saturation="160"
                     app:sensorHighlight="true">
 
@@ -215,13 +212,15 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="36dp"
+                    app:aberrationIntensity="4.5"
+                    app:bevelWidth="40dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.32"
+                    app:dispersionStrength="0.45"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
-                    app:refractionHeight="34dp"
+                    app:displacementScale="110"
+                    app:refractionHeight="44dp"
                     app:saturation="160"
                     app:sensorHighlight="true">
 
@@ -258,13 +257,15 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="36dp"
+                    app:aberrationIntensity="4.5"
+                    app:bevelWidth="40dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.32"
+                    app:dispersionStrength="0.45"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
-                    app:refractionHeight="34dp"
+                    app:displacementScale="110"
+                    app:refractionHeight="44dp"
                     app:saturation="160"
                     app:sensorHighlight="true">
 
@@ -303,13 +304,15 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="36dp"
+                    app:aberrationIntensity="4.5"
+                    app:bevelWidth="40dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.32"
+                    app:dispersionStrength="0.45"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
-                    app:refractionHeight="34dp"
+                    app:displacementScale="110"
+                    app:refractionHeight="44dp"
                     app:saturation="160"
                     app:sensorHighlight="true">
 
@@ -390,8 +393,7 @@
                     android:textColor="@color/white"
                     android:textSize="12sp" />
             </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <!-- 顶部玻璃标题胶囊（居中） -->
     <com.example.liquidglass.LiquidGlassView
@@ -403,11 +405,13 @@
         android:minWidth="180dp"
         android:paddingStart="28dp"
         android:paddingEnd="28dp"
-        app:bevelWidth="26dp"
+        app:aberrationIntensity="4"
+        app:bevelWidth="32dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.32"
+        app:dispersionStrength="0.45"
         app:glassMaterial="regular"
-        app:refractionHeight="20dp"
+        app:displacementScale="100"
+        app:refractionHeight="26dp"
         app:sensorHighlight="true">
 
         <TextView
@@ -424,29 +428,32 @@
             android:textStyle="bold" />
     </com.example.liquidglass.LiquidGlassView>
 
-    <!-- 左下：城市管理悬浮玻璃按钮 -->
+    <!-- 左下：刷新悬浮玻璃按钮 -->
     <com.example.liquidglass.LiquidGlassView
-        android:id="@+id/glass_btn_location"
+        android:id="@+id/glass_btn_refresh"
         android:layout_width="54dp"
         android:layout_height="54dp"
         android:layout_gravity="start|bottom"
         android:layout_marginStart="20dp"
         android:layout_marginBottom="28dp"
-        app:bevelWidth="24dp"
+        app:aberrationIntensity="4"
+        app:bevelWidth="30dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.32"
+        app:dispersionStrength="0.42"
+        app:displacementScale="100"
         app:glassMaterial="regular"
-        app:refractionHeight="20dp"
+        app:refractionHeight="26dp"
+        app:saturation="170"
         app:sensorHighlight="true">
 
         <ImageButton
-            android:id="@+id/btn_locations"
+            android:id="@+id/btn_refresh"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@null"
-            android:contentDescription="@string/action_locations"
+            android:contentDescription="@string/action_refresh"
             android:padding="14dp"
-            android:src="@drawable/ic_location"
+            android:src="@drawable/ic_refresh"
             app:tint="@color/white" />
     </com.example.liquidglass.LiquidGlassView>
 
@@ -458,11 +465,14 @@
         android:layout_gravity="end|bottom"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="28dp"
-        app:bevelWidth="24dp"
+        app:aberrationIntensity="4"
+        app:bevelWidth="30dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.32"
+        app:dispersionStrength="0.42"
+        app:displacementScale="100"
         app:glassMaterial="regular"
-        app:refractionHeight="20dp"
+        app:refractionHeight="26dp"
+        app:saturation="170"
         app:sensorHighlight="true">
 
         <ImageButton

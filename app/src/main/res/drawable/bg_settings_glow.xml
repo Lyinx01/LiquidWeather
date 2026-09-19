@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 设置页顶部柔光：给玻璃提供可折射的高频细节 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient
+                android:angle="270"
+                android:startColor="#4D4A9EE8"
+                android:centerColor="#1A2E5A8C"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+</layer-list>

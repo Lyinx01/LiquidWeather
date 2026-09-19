@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     // 悬浮玻璃的动态采样只在滚动/数据更新期间开启，静止后自动降频关闭
     private val floatingGlasses: List<LiquidGlassView> by lazy {
-        listOf(binding.glassTopbar, binding.glassBtnLocation, binding.glassBtnSettings)
+        listOf(binding.glassTopbar, binding.glassBtnRefresh, binding.glassBtnSettings)
     }
 
     // 内容卡片：静止时开启动态采样以折射飘移的云层，滚动时关闭保证流畅
@@ -74,6 +74,9 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     /** 按住中的玻璃数量：>0 时抑制降频，保持动态采样让折射跟随缩放。 */
     private var pressedGlassCount = 0
+
+    /** 刷新图标的旋转动画。 */
+    private var refreshAnimator: ObjectAnimator? = null
 
     /** 卡片低频刷新：只做 invalidate，库在背景哈希变化时才真正重采，避免逐帧全量采样。 */
     private val cardRefreshRunnable = object : Runnable {
@@ -124,8 +127,6 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         setupBackgroundAnimations()
         observe()
 
-        binding.swipeRefresh.setOnRefreshListener { viewModel.refresh() }
-
         if (!viewModel.hasLocations()) {
             if (LocationRepository.hasPermission(this)) {
                 requestGpsLocation()
@@ -146,9 +147,9 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             topLp.topMargin = sys.top + dp(10)
             binding.glassTopbar.layoutParams = topLp
 
-            val locationLp = binding.glassBtnLocation.layoutParams as FrameLayout.LayoutParams
-            locationLp.bottomMargin = sys.bottom + dp(16)
-            binding.glassBtnLocation.layoutParams = locationLp
+            val refreshLp = binding.glassBtnRefresh.layoutParams as FrameLayout.LayoutParams
+            refreshLp.bottomMargin = sys.bottom + dp(16)
+            binding.glassBtnRefresh.layoutParams = refreshLp
 
             val settingsLp = binding.glassBtnSettings.layoutParams as FrameLayout.LayoutParams
             settingsLp.bottomMargin = sys.bottom + dp(16)
@@ -345,15 +346,10 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     }
 
     private fun setupTopBar() {
-        binding.btnLocations.setOnClickListener {
-            CityPickerSheet.show(supportFragmentManager)
-        }
-        // 长按底部按钮：直接 GPS 定位添加/切换城市
-        binding.btnLocations.setOnLongClickListener {
-            requestGpsLocation()
-            true
-        }
+        // 左下：刷新
+        binding.btnRefresh.setOnClickListener { viewModel.refresh() }
         binding.btnSettings.setOnClickListener { openSettings() }
+        // 顶部城市胶囊：城市管理
         binding.tvTitle.setOnClickListener {
             CityPickerSheet.show(supportFragmentManager)
         }
@@ -362,18 +358,37 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             binding.glassTopbar, { onGlassPressed(it) }, binding.tvTitle
         )
         com.liuli.weather.ui.common.GlassPressEffect.attach(
-            binding.glassBtnLocation, { onGlassPressed(it) }, binding.btnLocations
+            binding.glassBtnRefresh, { onGlassPressed(it) }, binding.btnRefresh
         )
         com.liuli.weather.ui.common.GlassPressEffect.attach(
             binding.glassBtnSettings, { onGlassPressed(it) }, binding.btnSettings
         )
     }
 
+    /** 刷新中：左下角按钮的图标旋转，代替原先的下拉刷新指示器。 */
+    private fun setRefreshing(refreshing: Boolean) {
+        if (refreshing) {
+            if (refreshAnimator?.isRunning != true) {
+                refreshAnimator = ObjectAnimator.ofFloat(binding.btnRefresh, View.ROTATION, 0f, 360f)
+                    .apply {
+                        duration = 900L
+                        repeatCount = ValueAnimator.INFINITE
+                        interpolator = LinearInterpolator()
+                    }
+                    .also { it.start() }
+            }
+        } else {
+            refreshAnimator?.cancel()
+            refreshAnimator = null
+            binding.btnRefresh.rotation = 0f
+        }
+    }
+
     // ---------------------------------------------------------------- observe
 
     private fun observe() {
         viewModel.state.observe(this) { st ->
-            binding.swipeRefresh.isRefreshing = st is MainUiState.Loading
+            setRefreshing(st is MainUiState.Loading)
             when (st) {
                 is MainUiState.Idle -> showIdle()
                 is MainUiState.Loading -> Unit
@@ -533,9 +548,9 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             return
         }
         lifecycleScope.launch {
-            binding.swipeRefresh.isRefreshing = true
+            setRefreshing(true)
             val loc = LocationRepository.getCurrentLocation(this@MainActivity)
-            binding.swipeRefresh.isRefreshing = false
+            setRefreshing(false)
             if (loc == null) {
                 Toast.makeText(this@MainActivity, R.string.locate_failed, Toast.LENGTH_SHORT).show()
             } else {
