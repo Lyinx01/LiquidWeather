@@ -424,6 +424,9 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         binding.rvAlerts.visibility =
             if (w.alerts.isEmpty()) View.GONE else View.VISIBLE
 
+        // 同步刷新桌面小部件（数据刚更新，直接读缓存渲染）
+        com.liuli.weather.widget.WeatherWidgetProvider.updateAll(this)
+
         // 数据更新后让玻璃的折射立即刷新一次
         applyGlassDynamicPolicy()
     }

@@ -1,0 +1,176 @@
+package com.liuli.weather.widget
+
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.widget.RemoteViews
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.liuli.weather.MainActivity
+import com.liuli.weather.R
+import com.liuli.weather.data.model.Weather
+import com.liuli.weather.data.prefs.SettingsStore
+import com.liuli.weather.data.repository.WeatherRepository
+import com.liuli.weather.util.UnitConverter
+import com.liuli.weather.util.WeatherCodeMapper
+import java.util.concurrent.TimeUnit
+
+/**
+ * 桌面天气小部件（iOS 风格）。
+ * 数据刷新交给 [WeatherWidgetWorker]（WorkManager 周期任务，最短 15 分钟），
+ * 点击部件本体打开应用。
+ */
+class WeatherWidgetProvider : AppWidgetProvider() {
+
+    override fun onUpdate(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
+    ) {
+        // 先用缓存立即渲染，避免空白
+        appWidgetIds.forEach { id ->
+            renderFromCache(context, appWidgetManager, id)
+        }
+        WeatherWidgetWorker.enqueue(context)
+        // 触发一次立即刷新（有网时尽快更新）
+        WeatherWidgetWorker.refreshNow(context)
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == ACTION_WIDGET_REFRESH) {
+            updateAll(context)
+        }
+    }
+
+    companion object {
+        const val ACTION_WIDGET_REFRESH = "com.liuli.weather.action.WIDGET_REFRESH"
+
+        fun updateAll(context: Context) {
+            val manager = AppWidgetManager.getInstance(context)
+            val ids = manager.getAppWidgetIds(ComponentName(context, WeatherWidgetProvider::class.java))
+            ids.forEach { id -> renderFromCache(context, manager, id) }
+        }
+
+        /** 用本地缓存渲染；无缓存时显示引导文案。 */
+        fun renderFromCache(context: Context, manager: AppWidgetManager, widgetId: Int) {
+            val settings = SettingsStore(context)
+            val loc = settings.currentLocation()
+            val views = RemoteViews(context.packageName, R.layout.widget_weather_wide)
+
+            if (loc == null) {
+                views.setTextViewText(R.id.widget_city, context.getString(R.string.app_name))
+                views.setTextViewText(R.id.widget_condition, context.getString(R.string.widget_no_data))
+                views.setTextViewText(R.id.widget_range, "")
+                views.setTextViewText(R.id.widget_temp, "--°")
+            } else {
+                val repo = WeatherRepository(context, settings)
+                val weather = repo.cachedWeather(loc)
+                if (weather == null) {
+                    views.setTextViewText(R.id.widget_city, loc.name)
+                    views.setTextViewText(R.id.widget_condition, context.getString(R.string.widget_no_data))
+                    views.setTextViewText(R.id.widget_range, "")
+                    views.setTextViewText(R.id.widget_temp, "--°")
+                } else {
+                    bindWeather(context, views, weather, settings.imperialUnits)
+                }
+            }
+
+            // 点击打开应用
+            val launch = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            val pending = PendingIntent.getActivity(
+                context, 0, launch,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_root, pending)
+
+            manager.updateAppWidget(widgetId, views)
+        }
+
+        fun bindWeather(context: Context, views: RemoteViews, weather: Weather, imperial: Boolean) {
+            val c = weather.current
+            views.setTextViewText(R.id.widget_city, weather.location.name)
+            views.setTextViewText(R.id.widget_condition, c.skyconName)
+            views.setTextViewText(
+                R.id.widget_temp,
+                "${UnitConverter.displayInt(c.temperature, imperial)}°"
+            )
+            val today = weather.daily.firstOrNull()
+            views.setTextViewText(
+                R.id.widget_range,
+                if (today != null) {
+                    context.getString(
+                        R.string.widget_range,
+                        UnitConverter.displayInt(today.tempMax, imperial),
+                        UnitConverter.displayInt(today.tempMin, imperial)
+                    )
+                } else ""
+            )
+            views.setImageViewResource(R.id.widget_icon, WeatherCodeMapper.iconFor(c.skycon))
+        }
+    }
+}
+
+/** 周期刷新天气数据（WorkManager 最短周期 15 分钟）。 */
+class WeatherWidgetWorker(
+    appContext: Context,
+    params: androidx.work.WorkerParameters
+) : androidx.work.CoroutineWorker(appContext, params) {
+
+    override suspend fun doWork(): Result {
+        val settings = SettingsStore(applicationContext)
+        val loc = settings.currentLocation() ?: return Result.success()
+        return try {
+            val repo = WeatherRepository(applicationContext, settings)
+            repo.getWeather(loc)
+            WeatherWidgetProvider.updateAll(applicationContext)
+            Result.success()
+        } catch (e: Exception) {
+            // 失败保留旧缓存展示，下个周期重试
+            Result.retry()
+        }
+    }
+
+    companion object {
+        private const val PERIODIC_NAME = "weather_widget_periodic"
+        private const val ONESHOT_NAME = "weather_widget_now"
+
+        fun enqueue(context: Context) {
+            val request = PeriodicWorkRequestBuilder<WeatherWidgetWorker>(30, TimeUnit.MINUTES)
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+                .build()
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                PERIODIC_NAME,
+                ExistingPeriodicWorkPolicy.KEEP,
+                request
+            )
+        }
+
+        fun refreshNow(context: Context) {
+            val request = androidx.work.OneTimeWorkRequestBuilder<WeatherWidgetWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                ONESHOT_NAME,
+                androidx.work.ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
+    }
+}
