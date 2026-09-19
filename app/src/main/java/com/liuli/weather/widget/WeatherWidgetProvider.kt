@@ -68,16 +68,23 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             if (loc == null) {
                 views.setTextViewText(R.id.widget_city, context.getString(R.string.app_name))
                 views.setTextViewText(R.id.widget_condition, context.getString(R.string.widget_no_data))
-                views.setTextViewText(R.id.widget_range, "")
+                views.setTextViewText(R.id.widget_high, "")
+                views.setTextViewText(R.id.widget_low, "")
                 views.setTextViewText(R.id.widget_temp, "--°")
+                views.setViewVisibility(R.id.widget_location_arrow, android.view.View.GONE)
             } else {
                 val repo = WeatherRepository(context, settings)
                 val weather = repo.cachedWeather(loc)
                 if (weather == null) {
                     views.setTextViewText(R.id.widget_city, loc.name)
                     views.setTextViewText(R.id.widget_condition, context.getString(R.string.widget_no_data))
-                    views.setTextViewText(R.id.widget_range, "")
+                    views.setTextViewText(R.id.widget_high, "")
+                    views.setTextViewText(R.id.widget_low, "")
                     views.setTextViewText(R.id.widget_temp, "--°")
+                    views.setViewVisibility(
+                        R.id.widget_location_arrow,
+                        if (loc.isGps) android.view.View.VISIBLE else android.view.View.GONE
+                    )
                 } else {
                     bindWeather(context, views, weather, settings.imperialUnits)
                 }
@@ -101,41 +108,45 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             // 背景随天气切换（现代渐变玻璃）
             views.setInt(R.id.widget_root, "setBackgroundResource", backgroundFor(c.skycon))
             views.setTextViewText(R.id.widget_city, weather.location.name)
+            views.setViewVisibility(
+                R.id.widget_location_arrow,
+                if (weather.location.isGps) android.view.View.VISIBLE else android.view.View.GONE
+            )
             views.setTextViewText(R.id.widget_condition, c.skyconName)
             views.setTextViewText(
                 R.id.widget_temp,
                 "${UnitConverter.displayInt(c.temperature, imperial)}°"
             )
-            val today = weather.daily.firstOrNull()
-            views.setTextViewText(
-                R.id.widget_range,
-                if (today != null) {
-                    context.getString(
-                        R.string.widget_range,
-                        UnitConverter.displayInt(today.tempMax, imperial),
-                        UnitConverter.displayInt(today.tempMin, imperial)
-                    )
-                } else ""
-            )
             views.setImageViewResource(R.id.widget_icon, WeatherCodeMapper.iconFor(c.skycon))
 
-            // 逐小时预览：未来 5 个整点（跳过已过去的时段）
+            // 最高/最低（iOS 布局：位于天气状况下方）
+            val today = weather.daily.firstOrNull()
+            views.setTextViewText(
+                R.id.widget_high,
+                if (today != null) "${UnitConverter.displayInt(today.tempMax, imperial)}°" else "--°"
+            )
+            views.setTextViewText(
+                R.id.widget_low,
+                if (today != null) "${UnitConverter.displayInt(today.tempMin, imperial)}°" else "--°"
+            )
+
+            // 逐小时预览：未来 6 个时段，其中与日落/日出同小时的位置替换为时刻标记
             val now = System.currentTimeMillis()
-            val upcoming = weather.hourly.filter { it.time >= now - 30 * 60 * 1000L }.take(5)
+            val upcoming = weather.hourly.filter { it.time >= now - 30 * 60 * 1000L }.take(6)
             val hourIds = intArrayOf(
-                R.id.hour_1, R.id.hour_2, R.id.hour_3, R.id.hour_4, R.id.hour_5
+                R.id.hour_1, R.id.hour_2, R.id.hour_3, R.id.hour_4, R.id.hour_5, R.id.hour_6
             )
             val timeIds = intArrayOf(
                 R.id.hour_1_time, R.id.hour_2_time, R.id.hour_3_time,
-                R.id.hour_4_time, R.id.hour_5_time
+                R.id.hour_4_time, R.id.hour_5_time, R.id.hour_6_time
             )
             val iconIds = intArrayOf(
                 R.id.hour_1_icon, R.id.hour_2_icon, R.id.hour_3_icon,
-                R.id.hour_4_icon, R.id.hour_5_icon
+                R.id.hour_4_icon, R.id.hour_5_icon, R.id.hour_6_icon
             )
             val tempIds = intArrayOf(
                 R.id.hour_1_temp, R.id.hour_2_temp, R.id.hour_3_temp,
-                R.id.hour_4_temp, R.id.hour_5_temp
+                R.id.hour_4_temp, R.id.hour_5_temp, R.id.hour_6_temp
             )
             hourIds.forEachIndexed { i, containerId ->
                 val hour = upcoming.getOrNull(i)
@@ -143,13 +154,37 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     views.setViewVisibility(containerId, android.view.View.INVISIBLE)
                 } else {
                     views.setViewVisibility(containerId, android.view.View.VISIBLE)
-                    views.setTextViewText(timeIds[i], TimeUtils.hourLabel(hour.time))
-                    views.setImageViewResource(iconIds[i], WeatherCodeMapper.iconFor(hour.skycon))
+                    // iOS 设计：日出/日落所在时段显示具体时刻与对应图标
+                    val event = sunriseSunsetFor(hour.time, today)
+                    views.setTextViewText(
+                        timeIds[i],
+                        event?.first ?: TimeUtils.hourLabel(hour.time)
+                    )
+                    views.setImageViewResource(
+                        iconIds[i],
+                        event?.second ?: WeatherCodeMapper.iconFor(hour.skycon)
+                    )
                     views.setTextViewText(
                         tempIds[i],
                         "${UnitConverter.displayInt(hour.temperature, imperial)}°"
                     )
                 }
+            }
+        }
+
+        /** 该小时是否命中今天的日出/日落（命中则返回时刻与图标）。 */
+        private fun sunriseSunsetFor(
+            hourMillis: Long,
+            today: com.liuli.weather.data.model.DailyWeather?
+        ): Pair<String, Int>? {
+            if (today == null) return null
+            val hourLabel = TimeUtils.hourLabel(hourMillis)
+            return when {
+                today.sunrise?.substringBefore(":")?.let { "${it.toIntOrNull()}时" } == hourLabel ->
+                    (today.sunrise ?: "") to R.drawable.ic_d_sunrise
+                today.sunset?.substringBefore(":")?.let { "${it.toIntOrNull()}时" } == hourLabel ->
+                    (today.sunset ?: "") to R.drawable.ic_d_sunset
+                else -> null
             }
         }
 

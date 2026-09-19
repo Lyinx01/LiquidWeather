@@ -14,6 +14,8 @@
     <string name="widget_description">桌面天气小部件：实时温度、天气状况与今日高低温</string>
     <string name="widget_no_data">打开应用以获取天气</string>
     <string name="widget_range">最高 %1$d° · 最低 %2$d°</string>
+    <string name="widget_high_label">最高</string>
+    <string name="widget_low_label">最低</string>
 
     <!-- 操作 -->
     <string name="action_locations">城市管理</string>
