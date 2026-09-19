@@ -17,6 +17,7 @@ import com.liuli.weather.R
 import com.liuli.weather.data.model.Weather
 import com.liuli.weather.data.prefs.SettingsStore
 import com.liuli.weather.data.repository.WeatherRepository
+import com.liuli.weather.util.TimeUtils
 import com.liuli.weather.util.UnitConverter
 import com.liuli.weather.util.WeatherCodeMapper
 import java.util.concurrent.TimeUnit
@@ -97,6 +98,8 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
         fun bindWeather(context: Context, views: RemoteViews, weather: Weather, imperial: Boolean) {
             val c = weather.current
+            // 背景随天气切换（现代渐变玻璃）
+            views.setInt(R.id.widget_root, "setBackgroundResource", backgroundFor(c.skycon))
             views.setTextViewText(R.id.widget_city, weather.location.name)
             views.setTextViewText(R.id.widget_condition, c.skyconName)
             views.setTextViewText(
@@ -115,6 +118,51 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 } else ""
             )
             views.setImageViewResource(R.id.widget_icon, WeatherCodeMapper.iconFor(c.skycon))
+
+            // 逐小时预览：未来 5 个整点（跳过已过去的时段）
+            val now = System.currentTimeMillis()
+            val upcoming = weather.hourly.filter { it.time >= now - 30 * 60 * 1000L }.take(5)
+            val hourIds = intArrayOf(
+                R.id.hour_1, R.id.hour_2, R.id.hour_3, R.id.hour_4, R.id.hour_5
+            )
+            val timeIds = intArrayOf(
+                R.id.hour_1_time, R.id.hour_2_time, R.id.hour_3_time,
+                R.id.hour_4_time, R.id.hour_5_time
+            )
+            val iconIds = intArrayOf(
+                R.id.hour_1_icon, R.id.hour_2_icon, R.id.hour_3_icon,
+                R.id.hour_4_icon, R.id.hour_5_icon
+            )
+            val tempIds = intArrayOf(
+                R.id.hour_1_temp, R.id.hour_2_temp, R.id.hour_3_temp,
+                R.id.hour_4_temp, R.id.hour_5_temp
+            )
+            hourIds.forEachIndexed { i, containerId ->
+                val hour = upcoming.getOrNull(i)
+                if (hour == null) {
+                    views.setViewVisibility(containerId, android.view.View.INVISIBLE)
+                } else {
+                    views.setViewVisibility(containerId, android.view.View.VISIBLE)
+                    views.setTextViewText(timeIds[i], TimeUtils.hourLabel(hour.time))
+                    views.setImageViewResource(iconIds[i], WeatherCodeMapper.iconFor(hour.skycon))
+                    views.setTextViewText(
+                        tempIds[i],
+                        "${UnitConverter.displayInt(hour.temperature, imperial)}°"
+                    )
+                }
+            }
+        }
+
+        /** 天气 -> 小部件渐变背景。 */
+        private fun backgroundFor(skycon: String?): Int = when {
+            skycon == null -> R.drawable.widget_bg_cloudy
+            skycon == "CLEAR_DAY" -> R.drawable.widget_bg_sunny
+            skycon == "CLEAR_NIGHT" || skycon == "PARTLY_CLOUDY_NIGHT" -> R.drawable.widget_bg_night
+            skycon.contains("RAIN") || skycon == "THUNDER_SHOWER" -> R.drawable.widget_bg_rain
+            skycon.contains("SNOW") -> R.drawable.widget_bg_snow
+            skycon.contains("HAZE") || skycon == "FOG" || skycon == "DUST" || skycon == "SAND" ->
+                R.drawable.widget_bg_fog
+            else -> R.drawable.widget_bg_cloudy
         }
     }
 }
