@@ -1,78 +1,143 @@
-# 琉璃天气 (LiquidWeather)
+# Liquid Weather (琉璃天气)
 
-一款 **Liquid Glass（液态玻璃）风格** 的安卓天气应用。
+**English** · [简体中文](README.zh-CN.md)
 
-- **天气数据**：多数据源，设置页可切换
-  - 彩云天气 API v2.6（weather.json 合并接口，中国及亚太，含 AQI 与预警）
-  - AccuWeather（全球城市，免费档：当前 + 12 小时 + 5 日预报，每日 50 次调用）
-- **UI 库**：[QWEA0/Liquid-Glass-Android](https://github.com/QWEA0/Liquid-Glass-Android)（JitPack：`com.github.QWEA0:liquidglass:v2.0.10`）
-- **架构参考**：开源项目 [breezy-weather](https://github.com/breezy-weather/breezy-weather)（数据源 → 领域模型 → 卡片式主页的分层思路）
+An Android weather app built around a **Liquid Glass** design language — frosted glass cards that refract the animated sky behind them, with a home screen widget, four weather data sources and four UI languages.
 
-## 功能
+<p align="left">
+  <img alt="Platform" src="https://img.shields.io/badge/Platform-Android%208.0%2B-3DDC84?logo=android&logoColor=white">
+  <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white">
+  <img alt="UI" src="https://img.shields.io/badge/UI-XML%20Views%20%2B%20Material%203-757575">
+  <img alt="Glass" src="https://img.shields.io/badge/Glass-Liquid--Glass--Android-4A9EE8">
+</p>
 
-- 实时天气：温度、体感、天气现象、最高/最低温
-- 逐小时预报（48 小时，含降水概率）与 15 日预报（含温度区间条）
-- 详细信息网格：湿度、风、气压、云量、紫外线、舒适度、降水强度、日出/日落
-- 空气质量卡片（AQI + PM2.5/PM10/O₃/NO₂/SO₂/CO）
-- 气象预警卡片（按预警级别自动给玻璃染色，点击展开全文）
-- 城市管理：GPS 定位（LocationManager，不依赖 Google 服务）+ 内置 190+ 中国城市搜索，多城市管理
-- 天气/昼夜感知的动态天空背景（云层飘移动画），玻璃卡片实时折射背景
-- 天气缓存：无网络时展示上次数据
+## Screenshots
 
-## 技术栈
+| Day | Night | Widget |
+| :---: | :---: | :---: |
+| _(add a screenshot)_ | _(add a screenshot)_ | _(add a screenshot)_ |
 
-Kotlin · XML View 体系（该玻璃库为 View 组件，非 Compose）· Material 3 · ViewBinding ·
-ViewModel + LiveData · Coroutines · Retrofit + Gson · JitPack
+## Features
 
-## 构建步骤
+**Weather**
+- Current conditions: temperature, feels-like, condition, today's high/low
+- Hourly forecast (48 h, with precipitation probability)
+- Daily forecast (up to 15 days, with gradient temperature range bars)
+- Details grid: humidity, wind, pressure, cloud cover, UV index, comfort, precipitation, sunrise/sunset
+- Air quality card (AQI + PM2.5 / PM10 / O₃ / NO₂ / SO₂ / CO)
+- Weather alerts, tinted by severity level (tap to expand the full text)
+- Offline cache — the last successful data is shown when the network is unavailable
 
-1. 安装 [Android Studio](https://developer.android.com/studio)（JDK 17 内置）。
-2. `File → Open` 打开本目录 `LiquidWeather`。
-3. 首次同步会自动下载 Gradle 8.11.1 与依赖（含 JitPack 上的 liquidglass 库）。
-4. 连接设备或启动模拟器（API 26+），点击 Run。
-   - 命令行构建：`gradle wrapper && gradlew assembleDebug`（仓库未内置 wrapper jar，可由 Android Studio 自动生成或本机 gradle 生成一次）。
+**Design**
+- Liquid glass cards that refract the sky behind them, with dispersion (chromatic edge) and sensor-driven highlights
+- Weather- and time-aware animated sky: drifting cloud layers, twinkling stars at night, rain streaks, a breathing sun glow
+- iOS-style press feedback on the floating controls — scale-up with a light highlight and a springy release
+- iOS-inspired vector icon set (SF Symbols-like filled shapes), no bitmap assets
+- Centred, iOS-like layout for the current conditions block
 
-## 配置 API Key（必须，二选一或都配）
+**Home screen widget**
+- iOS-style layout: city + location arrow, large temperature, condition, high/low, and a 6-column hourly strip
+- Gradient background that changes with the weather (clear / night / cloudy / rain / snow / fog)
+- Sunrise and sunset slots replace the hour label with the exact time and a dedicated icon
+- Auto-sizing text so it renders correctly on any launcher grid (verified on ColorOS 4×6)
+- Refreshes every 30 minutes via WorkManager, plus on widget placement and whenever the app updates its data
 
-**彩云天气（默认数据源）**
-1. 前往 [dashboard.caiyunapp.com](https://dashboard.caiyunapp.com/) 注册并申请 **免费 Token**。
-2. 设置页粘贴 Token 并保存。
+**Cities & settings**
+- GPS location via `LocationManager` (no Google Play Services dependency) plus a built-in database of 190+ Chinese cities
+- Multiple saved cities with quick switching; long-press a chip to delete
+- Long-press the location button to add/switch to your current location instantly
+- Switchable weather source, API keys, temperature units (°C/°F) and language
 
-**AccuWeather（全球城市）**
-1. 前往 [developer.accuweather.com](https://developer.accuweather.com/) 注册应用，获得 API Key（免费档 **每日 50 次调用**；每次刷新消耗 3 次——当前天气 + 逐小时 + 每日）。
-2. 设置页粘贴 Key 并将数据源切换为 AccuWeather，保存后主页会自动刷新。
-3. 首次使用某坐标时会调用一次位置解析（geoposition/search）换取 `locationKey` 并缓存到该城市，之后不再消耗。
-4. AccuWeather 免费档不含空气质量与预警，对应卡片自动隐藏；图标码已映射到应用内 skycon 图标体系。
+**Localisation**
+- Simplified Chinese (default), Traditional Chinese, English, Japanese — the whole UI, weather descriptions, wind directions, AQI levels, error messages and time formats
+- The weather API is queried in the selected language, so descriptions match the interface
+- Respects the system per-app language setting on Android 13+
 
-所有 Key 均保存在本机 SharedPreferences，仅用于请求对应天气 API。
+## Weather data sources
 
-## Liquid Glass 使用要点（来自该库的约束）
+| Source | Coverage | Free tier | Notes |
+| --- | --- | --- | --- |
+| **Caiyun Weather** (default) | China & Asia-Pacific | Limited daily calls | Single combined `weather.json` request per refresh; includes AQI and alerts |
+| **QWeather** | China | 1000 calls/day | Current + 7-day + 24-hour + alerts; new console accounts need a dedicated API Host |
+| **AccuWeather** | Global | 50 calls/day | Current + 12-hour + 5-day; the location key is resolved once per city and cached |
+| **OpenWeather** | Global | 1000 calls/day | Current + 5-day/3-hour; daily values are aggregated from the 3-hour steps |
 
-- 玻璃卡片（`com.example.liquidglass.LiquidGlassView`）必须叠在**有细节内容的背景之上**才能看出折射效果——本项目为此实现了带太阳/月亮/星点/云层的分层天空背景与飘移动画。
-- 背景滚动或动画时必须开启 `enableDynamicBackground = true`，否则玻璃只采样一次。
-- 预警卡片通过 `glassTint`（ARGB，alpha 即染色强度）按预警级别着色。
+All keys are stored locally in `SharedPreferences` and are only sent to the corresponding provider.
 
-## 目录结构（参考 breezy-weather 分层）
+## Getting started
+
+### Requirements
+- Android Studio (JDK 17 bundled)
+- Android SDK 36, `minSdk` 26 (Android 8.0)
+- A device or emulator running Android 8.0+
+
+### Build
+```bash
+git clone https://github.com/Lyinx01/LiquidWeather.git
+cd LiquidWeather
+./gradlew assembleDebug        # Windows: gradlew.bat assembleDebug
+```
+Or open the project in Android Studio and press **Run**. The first sync downloads Gradle 8.11.1 and all dependencies, including the glass library from JitPack.
+
+### Configure an API key
+The app needs a key from at least one provider. Open **Settings → Weather source**, pick a provider, paste its key and save.
+
+- **Caiyun** — free token at [dashboard.caiyunapp.com](https://dashboard.caiyunapp.com/)
+- **QWeather** — free key at [console.qweather.com](https://console.qweather.com/). Accounts registered after 2024 must also paste their dedicated **API Host** (Console → Settings → API Host), e.g. `xxxxxxxx.re.qweatherapi.com`.
+- **AccuWeather** — free key at [developer.accuweather.com](https://developer.accuweather.com/)
+- **OpenWeather** — free key at [home.openweathermap.org](https://home.openweathermap.org/api_keys)
+
+## Tech stack
+
+Kotlin · XML Views (the glass library ships View components, not Compose) · Material 3 · ViewBinding ·
+ViewModel + LiveData · Coroutines · Retrofit + Gson · WorkManager · JitPack
+
+## Architecture
+
+The layering follows [breezy-weather](https://github.com/breezy-weather/breezy-weather): data sources → domain models → card-based UI.
 
 ```
 app/src/main/java/com/liuli/weather/
-├── MainActivity.kt              # 主页：玻璃卡片渲染、定位流程、下拉刷新
-├── SettingsActivity.kt          # Token 设置
+├── App.kt                        # Application: initialises AppCtx
+├── MainActivity.kt               # Home: glass cards, location flow, pull-to-refresh
+├── SettingsActivity.kt           # Source / key / units / language settings
 ├── data/
-│   ├── remote/                  # 彩云 API Retrofit 接口 + Gson DTO（v2.6）
-│   ├── repository/              # WeatherRepository：请求编排 + DTO→领域映射 + 文件缓存
-│   ├── location/                # LocationManager 定位封装
-│   ├── city/                    # 内置城市库（assets/cities.json）
-│   ├── model/                   # 领域模型（Weather / CurrentWeather / …）
-│   └── prefs/                   # SettingsStore：Token、多城市、当前位置
+│   ├── remote/                   # Retrofit APIs + Gson DTOs for the four providers
+│   ├── source/                   # WeatherSource abstraction + one implementation per provider
+│   ├── repository/               # WeatherRepository: source dispatch + per-source cache
+│   ├── location/                 # LocationManager wrapper
+│   ├── city/                     # Built-in city database (assets/cities.json)
+│   ├── model/                    # Domain models (Weather, CurrentWeather, …)
+│   └── prefs/                    # SettingsStore: keys, cities, units, language
 ├── ui/
-│   ├── main/                    # ViewModel、UiState、小时/每日/详情/预警适配器、TempRangeBar
-│   └── city/                    # 城市选择 BottomSheet + 城市列表适配器
-└── util/                        # skycon→图标/文案/背景映射、时间工具
+│   ├── main/                     # ViewModel, UI state, hourly/daily/detail/alert adapters
+│   ├── city/                     # City picker bottom sheet
+│   └── common/                   # GlassPressEffect: iOS-style press animation
+├── widget/                       # Home screen widget + WorkManager refresh worker
+└── util/                         # Weather code mapping, time utils, unit conversion, API language
 ```
 
-## 说明
+## How the liquid glass is wired
 
-- 坐标接口遵循彩云 v2.6：`GET /v2.6/{token}/{lng},{lat}/realtime.json|hourly.json|daily.json|alert.json`。
-- 详细信息中的风速单位为 km/h、气压 hPa（由接口 Pa 换算）。
-- 仅供学习交流使用；数据归彩云天气所有，UI 效果归 Liquid-Glass-Android 作者所有。
+The glass library captures the view behind a `LiquidGlassView` and refracts it. Three rules shaped this project:
+
+1. **The backdrop must contain detail.** Plain colours and smooth gradients show no refraction, so the app draws a layered sky — gradient base, soft radial clouds, stars, sun/moon glow — as the capture source.
+2. **Sampling is split by role.** Floating controls sample the whole root layout (so they refract the content scrolling underneath, like an iOS navigation bar) and only during scrolling or while pressed; content cards sample the static sky layer and refresh on a low-frequency timer. This keeps scrolling smooth while the cards still track the drifting clouds.
+3. **Press feedback uses `glassTint`.** A colour tint would interfere with the refracted image, so the press highlight is applied as an ARGB tint that fades in while the view scales up.
+
+## Localisation
+
+| Language | Resources |
+| --- | --- |
+| Simplified Chinese (default) | `values/strings.xml` |
+| English | `values-en/strings.xml` |
+| Traditional Chinese | `values-zh-rTW/strings.xml` |
+| Japanese | `values-ja/strings.xml` |
+
+`ApiLang` maps the app language to each provider's `lang` parameter, so weather descriptions come back in the same language as the interface. Adding a language means adding one `values-<tag>/strings.xml` plus an entry in `res/xml/locales_config.xml`.
+
+## Notes
+
+- Wind speed is shown in km/h and pressure in hPa (converted from the raw units where needed).
+- Only the key of the currently selected source is required.
+- Built for learning and personal use. Weather data belongs to the respective providers; the glass effect belongs to the [Liquid-Glass-Android](https://github.com/QWEA0/Liquid-Glass-Android) author.
