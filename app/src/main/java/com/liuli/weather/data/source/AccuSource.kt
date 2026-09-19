@@ -12,6 +12,9 @@ import com.liuli.weather.data.remote.AccuHourly
 import com.liuli.weather.data.remote.AccuMetric
 import com.liuli.weather.data.remote.ApiException
 import com.liuli.weather.data.remote.RetrofitClient
+import com.liuli.weather.R
+import com.liuli.weather.util.ApiLang
+import com.liuli.weather.util.AppCtx
 import com.liuli.weather.util.TimeUtils
 import com.liuli.weather.util.WeatherCodeMapper
 import java.time.Instant
@@ -30,24 +33,25 @@ class AccuSource(private val settings: SettingsStore) : WeatherSource {
     override val id = SettingsStore.SOURCE_ACCU
 
     override suspend fun getWeather(loc: LocationInfo): Weather {
-        val token = settings.accuToken ?: throw ApiException("未设置 AccuWeather API Key")
+        val token = settings.accuToken ?: throw ApiException(AppCtx.str(R.string.err_no_key_accu))
         val locationKey = loc.accuKey ?: resolveLocationKey(loc, token)
+        val lang = ApiLang.accuWeather()
 
         val api = RetrofitClient.accuApi
         val current = try {
-            api.current(locationKey, token)
+            api.current(locationKey, token, lang = lang)
         } catch (e: retrofit2.HttpException) {
-            throw ApiException("AccuWeather 实时 HTTP ${e.code()}：${errorBodyOf(e)}")
-        }.firstOrNull() ?: throw ApiException("AccuWeather 无当前天气数据")
+            throw ApiException(AppCtx.str(R.string.err_accu_http, e.code()))
+        }.firstOrNull() ?: throw ApiException(AppCtx.str(R.string.err_accu_no_current))
         val hourly = try {
-            api.hourly12(locationKey, token)
+            api.hourly12(locationKey, token, lang = lang)
         } catch (e: retrofit2.HttpException) {
-            throw ApiException("AccuWeather 逐小时 HTTP ${e.code()}：${errorBodyOf(e)}")
+            throw ApiException(AppCtx.str(R.string.err_accu_http, e.code()))
         }
         val daily = try {
-            api.daily5(locationKey, token)
+            api.daily5(locationKey, token, lang = lang)
         } catch (e: retrofit2.HttpException) {
-            throw ApiException("AccuWeather 每日 HTTP ${e.code()}：${errorBodyOf(e)}")
+            throw ApiException(AppCtx.str(R.string.err_accu_http, e.code()))
         }
 
         return mapWeather(loc, current, hourly, daily)
@@ -59,12 +63,12 @@ class AccuSource(private val settings: SettingsStore) : WeatherSource {
             java.util.Locale.US, "%.4f,%.4f", loc.lat, loc.lng
         )
         val resp = try {
-            RetrofitClient.accuApi.geoposition(token, q)
+            RetrofitClient.accuApi.geoposition(token, q, lang = ApiLang.accuWeather())
         } catch (e: retrofit2.HttpException) {
-            throw ApiException("AccuWeather 位置解析 HTTP ${e.code()}：${errorBodyOf(e)}")
+            throw ApiException(AppCtx.str(R.string.err_accu_http, e.code()))
         }
         val key = resp.key?.takeIf { it.isNotBlank() }
-            ?: throw ApiException("AccuWeather 位置解析失败")
+            ?: throw ApiException(AppCtx.str(R.string.err_accu_location))
         settings.updateLocationAccuKey(loc, key)
         return key
     }

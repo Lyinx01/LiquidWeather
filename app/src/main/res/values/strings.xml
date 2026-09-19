@@ -16,6 +16,7 @@
     <string name="widget_range">最高 %1$d° · 最低 %2$d°</string>
     <string name="widget_high_label">最高</string>
     <string name="widget_low_label">最低</string>
+    <string name="widget_temp_placeholder">--°</string>
 
     <!-- 操作 -->
     <string name="action_locations">城市管理</string>
@@ -38,9 +39,84 @@
     <string name="city_deleted">已删除城市</string>
     <string name="delete_city">删除城市</string>
     <string name="location_current">当前位置</string>
+    <string name="city_default">北京</string>
 
     <string name="need_token_title">需要 API Key</string>
     <string name="need_token_msg">当前数据源还没有配置 API Key。\n请先在设置中填写对应平台的 Key 并选择数据源。</string>
+
+    <!-- 时间 -->
+    <string name="time_today">今天</string>
+    <string name="time_tomorrow">明天</string>
+    <string name="time_now">现在</string>
+    <!-- 逐小时/小部件的时刻格式（DateTimeFormatter 语法） -->
+    <string name="time_hour_pattern">H时</string>
+    <!-- 小部件日出/日落所在时段的小时匹配格式 -->
+    <string name="time_hour_marker">%1$d时</string>
+
+    <!-- 星期（周日历用不到，逐日预报用 DateTimeFormatter 的 EEE 由系统本地化） -->
+
+    <!-- 天气现象（彩云 skycon / 各源映射后的统一代码） -->
+    <string name="wx_clear_day">晴</string>
+    <string name="wx_clear_night">晴夜</string>
+    <string name="wx_partly_cloudy_day">白天多云</string>
+    <string name="wx_partly_cloudy_night">夜间多云</string>
+    <string name="wx_cloudy">阴</string>
+    <string name="wx_light_haze">轻度雾霾</string>
+    <string name="wx_moderate_haze">中度雾霾</string>
+    <string name="wx_heavy_haze">重度雾霾</string>
+    <string name="wx_light_rain">小雨</string>
+    <string name="wx_moderate_rain">中雨</string>
+    <string name="wx_heavy_rain">大雨</string>
+    <string name="wx_storm_rain">暴雨</string>
+    <string name="wx_fog">雾</string>
+    <string name="wx_light_snow">小雪</string>
+    <string name="wx_moderate_snow">中雪</string>
+    <string name="wx_heavy_snow">大雪</string>
+    <string name="wx_storm_snow">暴雪</string>
+    <string name="wx_dust">浮尘</string>
+    <string name="wx_sand">沙尘暴</string>
+    <string name="wx_windy">大风</string>
+    <string name="wx_thunder">雷阵雨</string>
+    <string name="wx_unknown">未知</string>
+
+    <!-- 风向 -->
+    <string name="wind_n">北</string>
+    <string name="wind_ne">东北</string>
+    <string name="wind_e">东</string>
+    <string name="wind_se">东南</string>
+    <string name="wind_s">南</string>
+    <string name="wind_sw">西南</string>
+    <string name="wind_w">西</string>
+    <string name="wind_nw">西北</string>
+
+    <!-- 空气质量等级 -->
+    <string name="aqi_good">优</string>
+    <string name="aqi_moderate">良</string>
+    <string name="aqi_light">轻度污染</string>
+    <string name="aqi_medium">中度污染</string>
+    <string name="aqi_heavy">重度污染</string>
+    <string name="aqi_severe">严重污染</string>
+
+    <!-- 错误提示 -->
+    <string name="err_no_token_caiyun">未设置彩云天气 API Token</string>
+    <string name="err_no_key_qw">未设置和风天气 API Key</string>
+    <string name="err_no_key_accu">未设置 AccuWeather API Key</string>
+    <string name="err_no_key_ow">未设置 OpenWeather API Key</string>
+    <string name="err_empty_result">接口返回数据为空</string>
+    <string name="err_caiyun_api">彩云天气接口返回错误</string>
+    <string name="err_accu_no_current">AccuWeather 无当前天气数据</string>
+    <string name="err_accu_location">AccuWeather 位置解析失败</string>
+    <string name="err_accu_http">AccuWeather 接口错误（HTTP %1$d）</string>
+    <string name="err_qw_empty">和风天气返回数据为空</string>
+    <string name="err_qw_key_invalid">Key 无效、未开通该接口，或 API Host 与账号不匹配——新控制台账号请在设置中填写专属 API Host</string>
+    <string name="err_qw_quota">免费档调用次数已用完</string>
+    <string name="err_qw_region">查询地区超出订阅范围</string>
+    <string name="err_invalid_key">Key 无效或已过期，请在设置中检查</string>
+    <string name="err_rate_limit">请求过于频繁，请稍后再试</string>
+    <string name="err_quota">调用次数已达上限（AccuWeather 免费档每日 50 次）</string>
+    <string name="err_server">服务器错误（%1$d）</string>
+    <string name="err_network">网络连接失败，请检查网络</string>
+    <string name="err_load_failed">加载失败</string>
 
     <!-- 详情项 -->
     <string name="detail_feels_like">体感温度</string>
@@ -80,7 +156,14 @@
     <string name="units_imperial">英制（°F）</string>
     <string name="settings_units_note">单位只影响显示；API 请求始终使用摄氏度并按需换算。</string>
     <string name="settings_keys_note">只需填写当前选用数据源的 Key；和风免费档每日 1000 次、OpenWeather 免费档每日 1000 次、AccuWeather 免费档每日 50 次。切换数据源保存后主页会自动刷新。</string>
+
+    <!-- 语言 -->
+    <string name="settings_language_label">语言</string>
+    <string name="settings_language_note">切换语言后，天气描述也会按对应语言重新获取。</string>
+    <string name="language_system">跟随系统</string>
+    <string name="source_not_configured">%1$s（未配置）</string>
+
     <string name="token_saved">已保存</string>
     <string name="no_browser">未找到可用的浏览器</string>
-    <string name="settings_about">琉璃天气 v1.2.0\n\n数据来源：彩云天气 / 和风天气 / AccuWeather / OpenWeather\n玻璃效果：Liquid-Glass-Android（github.com/QWEA0）\n设计参考：开源项目 breezy-weather</string>
+    <string name="settings_about">琉璃天气 v1.3.0\n\n数据来源：彩云天气 / 和风天气 / AccuWeather / OpenWeather\n玻璃效果：Liquid-Glass-Android（github.com/QWEA0）\n设计参考：开源项目 breezy-weather</string>
 </resources>

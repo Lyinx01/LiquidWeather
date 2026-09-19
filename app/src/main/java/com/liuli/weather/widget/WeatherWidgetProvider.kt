@@ -70,7 +70,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.widget_condition, context.getString(R.string.widget_no_data))
                 views.setTextViewText(R.id.widget_high, "")
                 views.setTextViewText(R.id.widget_low, "")
-                views.setTextViewText(R.id.widget_temp, "--°")
+                views.setTextViewText(R.id.widget_temp, context.getString(R.string.widget_temp_placeholder))
                 views.setViewVisibility(R.id.widget_location_arrow, android.view.View.GONE)
             } else {
                 val repo = WeatherRepository(context, settings)
@@ -80,7 +80,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_condition, context.getString(R.string.widget_no_data))
                     views.setTextViewText(R.id.widget_high, "")
                     views.setTextViewText(R.id.widget_low, "")
-                    views.setTextViewText(R.id.widget_temp, "--°")
+                    views.setTextViewText(R.id.widget_temp, context.getString(R.string.widget_temp_placeholder))
                     views.setViewVisibility(
                         R.id.widget_location_arrow,
                         if (loc.isGps) android.view.View.VISIBLE else android.view.View.GONE
@@ -123,11 +123,11 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             val today = weather.daily.firstOrNull()
             views.setTextViewText(
                 R.id.widget_high,
-                if (today != null) "${UnitConverter.displayInt(today.tempMax, imperial)}°" else "--°"
+                if (today != null) "${UnitConverter.displayInt(today.tempMax, imperial)}°" else context.getString(R.string.widget_temp_placeholder)
             )
             views.setTextViewText(
                 R.id.widget_low,
-                if (today != null) "${UnitConverter.displayInt(today.tempMin, imperial)}°" else "--°"
+                if (today != null) "${UnitConverter.displayInt(today.tempMin, imperial)}°" else context.getString(R.string.widget_temp_placeholder)
             )
 
             // 逐小时预览：未来 6 个时段，其中与日落/日出同小时的位置替换为时刻标记
@@ -172,20 +172,32 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        /** 该小时是否命中今天的日出/日落（命中则返回时刻与图标）。 */
+        /**
+         * 该小时是否命中今天的日出/日落（命中则返回时刻与图标）。
+         * 通过「小时数」比对，不依赖任何语言的文案格式。
+         */
         private fun sunriseSunsetFor(
             hourMillis: Long,
             today: com.liuli.weather.data.model.DailyWeather?
         ): Pair<String, Int>? {
             if (today == null) return null
-            val hourLabel = TimeUtils.hourLabel(hourMillis)
+            val hourStartMillis = hourMillis / 3_600_000L * 3_600_000L
             return when {
-                today.sunrise?.substringBefore(":")?.let { "${it.toIntOrNull()}时" } == hourLabel ->
+                isSameHour(today.sunrise, hourStartMillis) ->
                     (today.sunrise ?: "") to R.drawable.ic_d_sunrise
-                today.sunset?.substringBefore(":")?.let { "${it.toIntOrNull()}时" } == hourLabel ->
+                isSameHour(today.sunset, hourStartMillis) ->
                     (today.sunset ?: "") to R.drawable.ic_d_sunset
                 else -> null
             }
+        }
+
+        /** "06:12" 的小时是否与给定时段的小时相同（不依赖任何语言文案）。 */
+        private fun isSameHour(hhmm: String?, hourStartMillis: Long): Boolean {
+            if (hhmm.isNullOrBlank()) return false
+            val hour = hhmm.substringBefore(":").trim().toIntOrNull() ?: return false
+            val slotHour = java.time.Instant.ofEpochMilli(hourStartMillis)
+                .atZone(java.time.ZoneId.systemDefault()).hour
+            return hour == slotHour
         }
 
         /** 天气 -> 小部件渐变背景。 */

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">瑠璃天気</string>
+
+    <!-- カードタイトル -->
+    <string name="title_hourly">時間別予報</string>
+    <string name="title_daily">日別予報</string>
+    <string name="title_details">詳細</string>
+    <string name="title_aqi">大気質</string>
+    <string name="footer_source">データ提供：彩雲天気 API · デザイン参考：breezy-weather</string>
+
+    <!-- ホーム画面ウィジェット -->
+    <string name="widget_label">瑠璃天気</string>
+    <string name="widget_description">ホーム画面の天気ウィジェット：現在の気温・天気・今日の最高／最低気温</string>
+    <string name="widget_no_data">アプリを開いて天気を取得してください</string>
+    <string name="widget_range">最高 %1$d° · 最低 %2$d°</string>
+    <string name="widget_high_label">最高</string>
+    <string name="widget_low_label">最低</string>
+    <string name="widget_temp_placeholder">--°</string>
+
+    <!-- 操作 -->
+    <string name="action_locations">都市の管理</string>
+    <string name="action_refresh">更新</string>
+    <string name="action_settings">設定</string>
+    <string name="action_locate">現在地</string>
+    <string name="action_save">保存</string>
+    <string name="action_delete">削除</string>
+    <string name="action_retry">再試行</string>
+    <string name="action_go_settings">設定を開く</string>
+    <string name="search_hint">都市を検索</string>
+
+    <!-- 状態とヒント -->
+    <string name="updated_at">%1$s 更新</string>
+    <string name="temp_range">最高 %1$d° · 最低 %2$d°</string>
+    <string name="idle_hint">都市が未選択です\n左上のボタンで選択するか、右上のボタンで現在地を取得してください</string>
+    <string name="locate_failed">位置情報を取得できませんでした。位置情報サービスをご確認ください。</string>
+    <string name="city_updated">都市を更新しました：%1$s</string>
+    <string name="permission_denied">位置情報の権限がありません。既定の都市を表示します。</string>
+    <string name="city_deleted">都市を削除しました</string>
+    <string name="delete_city">都市を削除</string>
+    <string name="location_current">現在地</string>
+    <string name="city_default">東京</string>
+
+    <string name="need_token_title">API キーが必要です</string>
+    <string name="need_token_msg">現在のデータソースに API キーが設定されていません。\n設定で該当サービスのキーを入力し、データソースを選択してください。</string>
+
+    <!-- 時刻 -->
+    <string name="time_today">今日</string>
+    <string name="time_tomorrow">明日</string>
+    <string name="time_now">現在</string>
+    <string name="time_hour_pattern">H時</string>
+    <string name="time_hour_marker">%1$d時</string>
+
+    <!-- 天気 -->
+    <string name="wx_clear_day">晴れ</string>
+    <string name="wx_clear_night">晴れ</string>
+    <string name="wx_partly_cloudy_day">晴れ時々曇り</string>
+    <string name="wx_partly_cloudy_night">晴れ時々曇り</string>
+    <string name="wx_cloudy">曇り</string>
+    <string name="wx_light_haze">軽い煙霧</string>
+    <string name="wx_moderate_haze">中程度の煙霧</string>
+    <string name="wx_heavy_haze">重度の煙霧</string>
+    <string name="wx_light_rain">小雨</string>
+    <string name="wx_moderate_rain">雨</string>
+    <string name="wx_heavy_rain">大雨</string>
+    <string name="wx_storm_rain">豪雨</string>
+    <string name="wx_fog">霧</string>
+    <string name="wx_light_snow">小雪</string>
+    <string name="wx_moderate_snow">雪</string>
+    <string name="wx_heavy_snow">大雪</string>
+    <string name="wx_storm_snow">吹雪</string>
+    <string name="wx_dust">塵</string>
+    <string name="wx_sand">砂嵐</string>
+    <string name="wx_windy">強風</string>
+    <string name="wx_thunder">雷雨</string>
+    <string name="wx_unknown">不明</string>
+
+    <!-- 風向 -->
+    <string name="wind_n">北</string>
+    <string name="wind_ne">北東</string>
+    <string name="wind_e">東</string>
+    <string name="wind_se">南東</string>
+    <string name="wind_s">南</string>
+    <string name="wind_sw">南西</string>
+    <string name="wind_w">西</string>
+    <string name="wind_nw">北西</string>
+
+    <!-- 大気質レベル -->
+    <string name="aqi_good">良好</string>
+    <string name="aqi_moderate">普通</string>
+    <string name="aqi_light">軽度汚染</string>
+    <string name="aqi_medium">中度汚染</string>
+    <string name="aqi_heavy">重度汚染</string>
+    <string name="aqi_severe">深刻な汚染</string>
+
+    <!-- エラー -->
+    <string name="err_no_token_caiyun">彩雲天気の API トークンが未設定です</string>
+    <string name="err_no_key_qw">和風天気の API キーが未設定です</string>
+    <string name="err_no_key_accu">AccuWeather の API キーが未設定です</string>
+    <string name="err_no_key_ow">OpenWeather の API キーが未設定です</string>
+    <string name="err_empty_result">API の応答が空です</string>
+    <string name="err_caiyun_api">彩雲天気 API がエラーを返しました</string>
+    <string name="err_accu_no_current">AccuWeather に現在の天気データがありません</string>
+    <string name="err_accu_location">AccuWeather の位置解決に失敗しました</string>
+    <string name="err_accu_http">AccuWeather の通信エラー（HTTP %1$d）</string>
+    <string name="err_qw_empty">和風天気の応答が空です</string>
+    <string name="err_qw_key_invalid">キーが無効、API 未契約、または API Host がアカウントと一致しません——新しいコンソールのアカウントは設定で専用 API Host を入力してください</string>
+    <string name="err_qw_quota">無料プランの呼び出し回数を使い切りました</string>
+    <string name="err_qw_region">指定地域は契約範囲外です</string>
+    <string name="err_invalid_key">キーが無効か期限切れです。設定をご確認ください。</string>
+    <string name="err_rate_limit">リクエストが多すぎます。しばらくしてからお試しください。</string>
+    <string name="err_quota">1日の呼び出し上限に達しました（AccuWeather 無料プランは 50 回／日）</string>
+    <string name="err_server">サーバーエラー（%1$d）</string>
+    <string name="err_network">ネットワークに接続できません。接続をご確認ください。</string>
+    <string name="err_load_failed">読み込みに失敗しました</string>
+
+    <!-- 詳細 -->
+    <string name="detail_feels_like">体感温度</string>
+    <string name="detail_humidity">湿度</string>
+    <string name="detail_wind">風</string>
+    <string name="detail_pressure">気圧</string>
+    <string name="detail_cloud">雲量</string>
+    <string name="detail_uv">紫外線</string>
+    <string name="detail_comfort">快適度</string>
+    <string name="detail_precip">降水強度</string>
+    <string name="detail_sunrise">日の出</string>
+    <string name="detail_sunset">日の入り</string>
+
+    <!-- 設定 -->
+    <string name="settings_source_label">データソース</string>
+    <string name="source_caiyun">彩雲天気（中国・アジア太平洋）</string>
+    <string name="source_qweather">和風天気（中国）</string>
+    <string name="source_accu">AccuWeather（全世界）</string>
+    <string name="source_openweather">OpenWeather（全世界）</string>
+    <string name="settings_token_label">彩雲天気 API トークン</string>
+    <string name="settings_token_hint">トークンを貼り付け</string>
+    <string name="settings_get_token">トークンがない場合は dashboard.caiyunapp.com で申請 →</string>
+    <string name="settings_qw_label">和風天気 API キー（中国）</string>
+    <string name="settings_qw_hint">和風天気のキーを貼り付け</string>
+    <string name="settings_get_qw_key">キーがない場合は console.qweather.com で無料取得 →</string>
+    <string name="settings_qw_host_label">和風天気 API Host（新コンソールのアカウントは必須）</string>
+    <string name="settings_qw_host_hint">例：xxx.re.qweatherapi.com</string>
+    <string name="settings_qw_host_note">2024 年以降に登録したアカウントは「コンソール → 設定 → API Host」で専用ドメインを確認して入力してください。旧無料アカウントは空欄で構いません（既定：devapi.qweather.com）。</string>
+    <string name="settings_accu_label">AccuWeather API キー（世界各地の都市）</string>
+    <string name="settings_accu_hint">AccuWeather のキーを貼り付け</string>
+    <string name="settings_get_accu_key">キーがない場合は developer.accuweather.com で無料取得 →</string>
+    <string name="settings_ow_label">OpenWeather API キー（世界各地の都市）</string>
+    <string name="settings_ow_hint">OpenWeather のキーを貼り付け</string>
+    <string name="settings_get_ow_key">キーがない場合は home.openweathermap.org で無料取得 →</string>
+    <string name="settings_units_label">温度の単位</string>
+    <string name="units_metric">メートル法（°C）</string>
+    <string name="units_imperial">ヤード・ポンド法（°F）</string>
+    <string name="settings_units_note">単位は表示のみに影響します。API は常に摂氏で取得し、必要に応じて換算します。</string>
+    <string name="settings_keys_note">選択中のデータソースのキーのみ入力が必要です。無料枠：和風天気 1000 回／日、OpenWeather 1000 回／日、AccuWeather 50 回／日。保存後、ホーム画面は自動的に更新されます。</string>
+
+    <!-- 言語 -->
+    <string name="settings_language_label">言語</string>
+    <string name="settings_language_note">言語を切り替えると、天気の説明もその言語で再取得されます。</string>
+    <string name="language_system">システムに従う</string>
+    <string name="source_not_configured">%1$s（未設定）</string>
+
+    <string name="token_saved">保存しました</string>
+    <string name="no_browser">利用できるブラウザが見つかりません</string>
+    <string name="settings_about">瑠璃天気 v1.3.0\n\nデータ提供：彩雲天気 / 和風天気 / AccuWeather / OpenWeather\nガラス効果：Liquid-Glass-Android（github.com/QWEA0）\nデザイン参考：breezy-weather</string>
+</resources>

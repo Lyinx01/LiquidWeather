@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Liquid Weather</string>
+
+    <!-- Card titles -->
+    <string name="title_hourly">Hourly Forecast</string>
+    <string name="title_daily">Daily Forecast</string>
+    <string name="title_details">Details</string>
+    <string name="title_aqi">Air Quality</string>
+    <string name="footer_source">Data: Caiyun Weather API · UI inspired by breezy-weather</string>
+
+    <!-- Home screen widget -->
+    <string name="widget_label">Liquid Weather</string>
+    <string name="widget_description">Home screen weather widget: current temperature, conditions and today\'s high/low</string>
+    <string name="widget_no_data">Open the app to load weather</string>
+    <string name="widget_range">H %1$d° · L %2$d°</string>
+    <string name="widget_high_label">H</string>
+    <string name="widget_low_label">L</string>
+    <string name="widget_temp_placeholder">--°</string>
+
+    <!-- Actions -->
+    <string name="action_locations">Manage cities</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_locate">Locate</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_go_settings">Open settings</string>
+    <string name="search_hint">Search city</string>
+
+    <!-- Status and hints -->
+    <string name="updated_at">Updated %1$s</string>
+    <string name="temp_range">High %1$d° · Low %2$d°</string>
+    <string name="idle_hint">No city selected yet\nTap the top-left button to choose one, or use the top-right button to locate</string>
+    <string name="locate_failed">Could not get your location. Check that location services are on.</string>
+    <string name="city_updated">City updated: %1$s</string>
+    <string name="permission_denied">Location permission denied. Showing a default city.</string>
+    <string name="city_deleted">City deleted</string>
+    <string name="delete_city">Delete city</string>
+    <string name="location_current">Current location</string>
+    <string name="city_default">Beijing</string>
+
+    <string name="need_token_title">API key required</string>
+    <string name="need_token_msg">No API key is configured for the current weather source.\nPlease add the key for that provider in Settings and select the source.</string>
+
+    <!-- Time -->
+    <string name="time_today">Today</string>
+    <string name="time_tomorrow">Tomorrow</string>
+    <string name="time_now">Now</string>
+    <!-- Hour label format for hourly list and widget (DateTimeFormatter pattern) -->
+    <string name="time_hour_pattern">h a</string>
+    <!-- Hour marker format used to detect sunrise/sunset slots in the widget -->
+    <string name="time_hour_marker">%1$d:00</string>
+
+    <!-- Weather conditions -->
+    <string name="wx_clear_day">Clear</string>
+    <string name="wx_clear_night">Clear</string>
+    <string name="wx_partly_cloudy_day">Partly Cloudy</string>
+    <string name="wx_partly_cloudy_night">Partly Cloudy</string>
+    <string name="wx_cloudy">Overcast</string>
+    <string name="wx_light_haze">Light Haze</string>
+    <string name="wx_moderate_haze">Moderate Haze</string>
+    <string name="wx_heavy_haze">Heavy Haze</string>
+    <string name="wx_light_rain">Light Rain</string>
+    <string name="wx_moderate_rain">Moderate Rain</string>
+    <string name="wx_heavy_rain">Heavy Rain</string>
+    <string name="wx_storm_rain">Rainstorm</string>
+    <string name="wx_fog">Fog</string>
+    <string name="wx_light_snow">Light Snow</string>
+    <string name="wx_moderate_snow">Moderate Snow</string>
+    <string name="wx_heavy_snow">Heavy Snow</string>
+    <string name="wx_storm_snow">Snowstorm</string>
+    <string name="wx_dust">Dust</string>
+    <string name="wx_sand">Sandstorm</string>
+    <string name="wx_windy">Windy</string>
+    <string name="wx_thunder">Thunderstorm</string>
+    <string name="wx_unknown">Unknown</string>
+
+    <!-- Wind directions -->
+    <string name="wind_n">N</string>
+    <string name="wind_ne">NE</string>
+    <string name="wind_e">E</string>
+    <string name="wind_se">SE</string>
+    <string name="wind_s">S</string>
+    <string name="wind_sw">SW</string>
+    <string name="wind_w">W</string>
+    <string name="wind_nw">NW</string>
+
+    <!-- Air quality levels -->
+    <string name="aqi_good">Good</string>
+    <string name="aqi_moderate">Moderate</string>
+    <string name="aqi_light">Lightly Polluted</string>
+    <string name="aqi_medium">Moderately Polluted</string>
+    <string name="aqi_heavy">Heavily Polluted</string>
+    <string name="aqi_severe">Severely Polluted</string>
+
+    <!-- Errors -->
+    <string name="err_no_token_caiyun">Caiyun API token not set</string>
+    <string name="err_no_key_qw">QWeather API key not set</string>
+    <string name="err_no_key_accu">AccuWeather API key not set</string>
+    <string name="err_no_key_ow">OpenWeather API key not set</string>
+    <string name="err_empty_result">The API returned no data</string>
+    <string name="err_caiyun_api">Caiyun API returned an error</string>
+    <string name="err_accu_no_current">AccuWeather has no current conditions</string>
+    <string name="err_accu_location">AccuWeather could not resolve the location</string>
+    <string name="err_accu_http">AccuWeather request failed (HTTP %1$d)</string>
+    <string name="err_qw_empty">QWeather returned no data</string>
+    <string name="err_qw_key_invalid">Invalid key, API not subscribed, or the API Host does not match your account — new console accounts must enter their dedicated API Host in Settings</string>
+    <string name="err_qw_quota">Free plan call quota exhausted</string>
+    <string name="err_qw_region">The requested region is outside your subscription</string>
+    <string name="err_invalid_key">Invalid or expired key. Please check Settings.</string>
+    <string name="err_rate_limit">Too many requests. Please try again later.</string>
+    <string name="err_quota">Daily call limit reached (AccuWeather free plan: 50/day)</string>
+    <string name="err_server">Server error (%1$d)</string>
+    <string name="err_network">Network unreachable. Please check your connection.</string>
+    <string name="err_load_failed">Failed to load</string>
+
+    <!-- Details -->
+    <string name="detail_feels_like">Feels Like</string>
+    <string name="detail_humidity">Humidity</string>
+    <string name="detail_wind">Wind</string>
+    <string name="detail_pressure">Pressure</string>
+    <string name="detail_cloud">Cloud Cover</string>
+    <string name="detail_uv">UV Index</string>
+    <string name="detail_comfort">Comfort</string>
+    <string name="detail_precip">Precipitation</string>
+    <string name="detail_sunrise">Sunrise</string>
+    <string name="detail_sunset">Sunset</string>
+
+    <!-- Settings -->
+    <string name="settings_source_label">Weather source</string>
+    <string name="source_caiyun">Caiyun Weather (China &amp; Asia-Pacific)</string>
+    <string name="source_qweather">QWeather (China)</string>
+    <string name="source_accu">AccuWeather (Global)</string>
+    <string name="source_openweather">OpenWeather (Global)</string>
+    <string name="settings_token_label">Caiyun API Token</string>
+    <string name="settings_token_hint">Paste your token</string>
+    <string name="settings_get_token">No token? Apply at dashboard.caiyunapp.com →</string>
+    <string name="settings_qw_label">QWeather API Key (China)</string>
+    <string name="settings_qw_hint">Paste your QWeather key</string>
+    <string name="settings_get_qw_key">No key? Get a free one at console.qweather.com →</string>
+    <string name="settings_qw_host_label">QWeather API Host (required for new console accounts)</string>
+    <string name="settings_qw_host_hint">e.g. xxx.re.qweatherapi.com</string>
+    <string name="settings_qw_host_note">Accounts registered after 2024 must copy their dedicated host from "Console → Settings → API Host". Legacy free accounts can leave this empty (defaults to devapi.qweather.com).</string>
+    <string name="settings_accu_label">AccuWeather API Key (global cities)</string>
+    <string name="settings_accu_hint">Paste your AccuWeather key</string>
+    <string name="settings_get_accu_key">No key? Get a free one at developer.accuweather.com →</string>
+    <string name="settings_ow_label">OpenWeather API Key (global cities)</string>
+    <string name="settings_ow_hint">Paste your OpenWeather key</string>
+    <string name="settings_get_ow_key">No key? Get a free one at home.openweathermap.org →</string>
+    <string name="settings_units_label">Temperature units</string>
+    <string name="units_metric">Metric (°C)</string>
+    <string name="units_imperial">Imperial (°F)</string>
+    <string name="settings_units_note">Units affect display only; API requests always use Celsius and are converted as needed.</string>
+    <string name="settings_keys_note">Only the key of the selected source is required. Free plans: QWeather 1000/day, OpenWeather 1000/day, AccuWeather 50/day. The home screen refreshes automatically after saving.</string>
+
+    <!-- Language -->
+    <string name="settings_language_label">Language</string>
+    <string name="settings_language_note">Weather descriptions are re-fetched in the selected language.</string>
+    <string name="language_system">System default</string>
+    <string name="source_not_configured">%1$s (not configured)</string>
+
+    <string name="token_saved">Saved</string>
+    <string name="no_browser">No browser available</string>
+    <string name="settings_about">Liquid Weather v1.3.0\n\nData: Caiyun / QWeather / AccuWeather / OpenWeather\nGlass effect: Liquid-Glass-Android (github.com/QWEA0)\nDesign reference: breezy-weather</string>
+</resources>

@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.liuli.weather.R
 import com.liuli.weather.data.model.LocationInfo
 import com.liuli.weather.data.prefs.SettingsStore
 import com.liuli.weather.data.repository.WeatherRepository
@@ -68,10 +69,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 定位被拒绝且没有任何城市时，退回默认城市。 */
+    /** 定位被拒绝且没有任何城市时，退回默认城市（北京）。 */
     fun ensureDefaultLocation() {
         if (settings.locations().isEmpty()) {
-            settings.addOrSelectLocation(LocationInfo("北京", 39.9042, 116.4074))
+            settings.addOrSelectLocation(LocationInfo(getApplication<Application>().getString(R.string.city_default), 39.9042, 116.4074))
             _locations.value = settings.locations()
             load(forceRefresh = false)
         }
@@ -100,16 +101,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun humanMessage(e: Exception): String = when {
-        e is com.liuli.weather.data.remote.ApiException -> e.message ?: "接口返回错误"
-        e is UnknownHostException -> "网络连接失败，请检查网络"
-        e is retrofit2.HttpException -> when (e.code()) {
-            401, 403 -> "Key 无效或已过期，请在设置中检查"
-            429 -> "请求过于频繁，请稍后再试"
-            503 -> "调用次数已达上限（AccuWeather 免费档每日 50 次）"
-            else -> "服务器错误（${e.code()}）"
+    private fun humanMessage(e: Exception): String {
+        val res = getApplication<Application>().resources
+        return when {
+            e is com.liuli.weather.data.remote.ApiException ->
+                e.message ?: res.getString(R.string.err_load_failed)
+            e is UnknownHostException -> res.getString(R.string.err_network)
+            e is retrofit2.HttpException -> when (e.code()) {
+                401, 403 -> res.getString(R.string.err_invalid_key)
+                429 -> res.getString(R.string.err_rate_limit)
+                503 -> res.getString(R.string.err_quota)
+                else -> res.getString(R.string.err_server, e.code())
+            }
+            else -> e.message ?: res.getString(R.string.err_load_failed)
         }
-        else -> e.message ?: "加载失败"
     }
 
     companion object {

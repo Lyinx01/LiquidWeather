@@ -10,6 +10,9 @@ import com.liuli.weather.data.prefs.SettingsStore
 import com.liuli.weather.data.remote.ApiException
 import com.liuli.weather.data.remote.QwWarningResponse
 import com.liuli.weather.data.remote.RetrofitClient
+import com.liuli.weather.R
+import com.liuli.weather.util.ApiLang
+import com.liuli.weather.util.AppCtx
 import com.liuli.weather.util.TimeUtils
 import com.liuli.weather.util.WeatherCodeMapper
 import java.util.Locale
@@ -25,8 +28,9 @@ class QWeatherSource(private val settings: SettingsStore) : WeatherSource {
     override val id = SettingsStore.SOURCE_QWEATHER
 
     override suspend fun getWeather(loc: LocationInfo): Weather {
-        val token = settings.qwToken ?: throw ApiException("未设置和风天气 API Key")
+        val token = settings.qwToken ?: throw ApiException(AppCtx.str(R.string.err_no_key_qw))
         val location = String.format(Locale.US, "%.4f,%.4f", loc.lng, loc.lat)
+        val lang = ApiLang.qweather()
 
         // 新控制台账号使用专属 API Host 且用请求头认证；旧账号走默认 devapi + key 参数。
         // 双认证同时带上（header + key 参数），服务端按自身体系取其一，简化用户配置。
@@ -36,15 +40,15 @@ class QWeatherSource(private val settings: SettingsStore) : WeatherSource {
         val headerKey = if (isLegacyHost) null else token
         val queryKey = if (isLegacyHost) token else null
 
-        val now = api.now("${base}v7/weather/now", headerKey, queryKey, location)
-            .also { checkCode(it.code, "实时天气") }
-        val daily = api.daily7("${base}v7/weather/7d", headerKey, queryKey, location)
-            .also { checkCode(it.code, "每日预报") }
-        val hourly = api.hourly24("${base}v7/weather/24h", headerKey, queryKey, location)
-            .also { checkCode(it.code, "逐小时预报") }
+        val now = api.now("${base}v7/weather/now", headerKey, queryKey, location, lang)
+            .also { checkCode(it.code, "now") }
+        val daily = api.daily7("${base}v7/weather/7d", headerKey, queryKey, location, lang)
+            .also { checkCode(it.code, "7d") }
+        val hourly = api.hourly24("${base}v7/weather/24h", headerKey, queryKey, location, lang)
+            .also { checkCode(it.code, "24h") }
         val warning = try {
-            api.warning("${base}v7/warning/now", headerKey, queryKey, location)
-                .also { checkCode(it.code, "气象预警") }
+            api.warning("${base}v7/warning/now", headerKey, queryKey, location, lang)
+                .also { checkCode(it.code, "warning") }
         } catch (e: Exception) {
             null // 预警失败不阻塞主流程
         }
@@ -52,15 +56,19 @@ class QWeatherSource(private val settings: SettingsStore) : WeatherSource {
         return mapWeather(loc, now.now, daily.daily.orEmpty(), hourly.hourly.orEmpty(), warning)
     }
 
+    /** 业务码校验：错误提示本地化，接口名用简短英文标识便于排查。 */
     private fun checkCode(code: String?, what: String) {
         if (code != "200") {
             val hint = when (code) {
-                "401", "403" -> "（Key 无效、未开通该接口，或 API Host 与账号不匹配——新控制台账号请在设置中填写专属 API Host）"
-                "402" -> "（免费档调用次数已用完）"
-                "404" -> "（查询地区超出订阅范围）"
+                "401", "403" -> AppCtx.str(R.string.err_qw_key_invalid)
+                "402" -> AppCtx.str(R.string.err_qw_quota)
+                "404" -> AppCtx.str(R.string.err_qw_region)
                 else -> ""
             }
-            throw ApiException("和风天气$what 获取失败$hint")
+            throw ApiException(
+                if (hint.isEmpty()) AppCtx.str(R.string.err_qw_empty)
+                else "$what: $hint"
+            )
         }
     }
 
@@ -122,7 +130,7 @@ class QWeatherSource(private val settings: SettingsStore) : WeatherSource {
 
         val alerts = warning?.warning.orEmpty().map { w ->
             WeatherAlert(
-                title = w.title ?: w.typeName ?: "气象预警",
+                title = w.title ?: w.typeName ?: AppCtx.str(R.string.wx_unknown),
                 description = w.text ?: "",
                 source = w.source,
                 publishTime = TimeUtils.parseIsoMillis(w.pubTime)

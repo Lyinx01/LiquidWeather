@@ -11,6 +11,9 @@ import com.liuli.weather.data.remote.OwCurrentResponse
 import com.liuli.weather.data.remote.OwForecastResponse
 import com.liuli.weather.data.remote.OwWeather
 import com.liuli.weather.data.remote.RetrofitClient
+import com.liuli.weather.R
+import com.liuli.weather.util.ApiLang
+import com.liuli.weather.util.AppCtx
 import com.liuli.weather.util.TimeUtils
 import com.liuli.weather.util.WeatherCodeMapper
 import java.time.Instant
@@ -29,12 +32,13 @@ class OpenWeatherSource(private val settings: SettingsStore) : WeatherSource {
     override val id = SettingsStore.SOURCE_OPENWEATHER
 
     override suspend fun getWeather(loc: LocationInfo): Weather {
-        val token = settings.owToken ?: throw ApiException("未设置 OpenWeather API Key")
+        val token = settings.owToken ?: throw ApiException(AppCtx.str(R.string.err_no_key_ow))
         val lat = String.format(Locale.US, "%.4f", loc.lat)
         val lng = String.format(Locale.US, "%.4f", loc.lng)
+        val lang = ApiLang.openWeather()
         val api = RetrofitClient.owApi
-        val current = api.current(token, lat, lng)
-        val forecast = api.forecast(token, lat, lng)
+        val current = api.current(token, lat, lng, lang = lang)
+        val forecast = api.forecast(token, lat, lng, lang = lang)
         return mapWeather(loc, current, forecast)
     }
 

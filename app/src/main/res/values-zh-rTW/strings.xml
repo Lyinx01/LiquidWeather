@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">琉璃天氣</string>
+
+    <!-- 卡片標題 -->
+    <string name="title_hourly">逐小時預報</string>
+    <string name="title_daily">每日預報</string>
+    <string name="title_details">詳細資訊</string>
+    <string name="title_aqi">空氣品質</string>
+    <string name="footer_source">資料來源：彩雲天氣 API · 介面靈感來自 breezy-weather</string>
+
+    <!-- 桌面小工具 -->
+    <string name="widget_label">琉璃天氣</string>
+    <string name="widget_description">桌面天氣小工具：即時溫度、天氣狀況與今日高低溫</string>
+    <string name="widget_no_data">開啟應用程式以取得天氣</string>
+    <string name="widget_range">最高 %1$d° · 最低 %2$d°</string>
+    <string name="widget_high_label">最高</string>
+    <string name="widget_low_label">最低</string>
+    <string name="widget_temp_placeholder">--°</string>
+
+    <!-- 操作 -->
+    <string name="action_locations">城市管理</string>
+    <string name="action_refresh">重新整理</string>
+    <string name="action_settings">設定</string>
+    <string name="action_locate">定位</string>
+    <string name="action_save">儲存</string>
+    <string name="action_delete">刪除</string>
+    <string name="action_retry">重試</string>
+    <string name="action_go_settings">前往設定</string>
+    <string name="search_hint">搜尋城市</string>
+
+    <!-- 狀態與提示 -->
+    <string name="updated_at">更新於 %1$s</string>
+    <string name="temp_range">最高 %1$d° · 最低 %2$d°</string>
+    <string name="idle_hint">尚未選擇城市\n點擊左上角選擇，或使用右上角按鈕開啟定位</string>
+    <string name="locate_failed">未取得位置，請確認定位服務是否開啟</string>
+    <string name="city_updated">已更新城市：%1$s</string>
+    <string name="permission_denied">未授予定位權限，已顯示預設城市</string>
+    <string name="city_deleted">已刪除城市</string>
+    <string name="delete_city">刪除城市</string>
+    <string name="location_current">目前位置</string>
+    <string name="city_default">臺北</string>
+
+    <string name="need_token_title">需要 API Key</string>
+    <string name="need_token_msg">目前的資料來源尚未設定 API Key。\n請先在設定中填寫對應平台的 Key 並選擇資料來源。</string>
+
+    <!-- 時間 -->
+    <string name="time_today">今天</string>
+    <string name="time_tomorrow">明天</string>
+    <string name="time_now">現在</string>
+    <string name="time_hour_pattern">H時</string>
+    <string name="time_hour_marker">%1$d時</string>
+
+    <!-- 天氣現象 -->
+    <string name="wx_clear_day">晴</string>
+    <string name="wx_clear_night">晴夜</string>
+    <string name="wx_partly_cloudy_day">白天多雲</string>
+    <string name="wx_partly_cloudy_night">夜間多雲</string>
+    <string name="wx_cloudy">陰</string>
+    <string name="wx_light_haze">輕度霧霾</string>
+    <string name="wx_moderate_haze">中度霧霾</string>
+    <string name="wx_heavy_haze">重度霧霾</string>
+    <string name="wx_light_rain">小雨</string>
+    <string name="wx_moderate_rain">中雨</string>
+    <string name="wx_heavy_rain">大雨</string>
+    <string name="wx_storm_rain">暴雨</string>
+    <string name="wx_fog">霧</string>
+    <string name="wx_light_snow">小雪</string>
+    <string name="wx_moderate_snow">中雪</string>
+    <string name="wx_heavy_snow">大雪</string>
+    <string name="wx_storm_snow">暴雪</string>
+    <string name="wx_dust">浮塵</string>
+    <string name="wx_sand">沙塵暴</string>
+    <string name="wx_windy">大風</string>
+    <string name="wx_thunder">雷陣雨</string>
+    <string name="wx_unknown">未知</string>
+
+    <!-- 風向 -->
+    <string name="wind_n">北</string>
+    <string name="wind_ne">東北</string>
+    <string name="wind_e">東</string>
+    <string name="wind_se">東南</string>
+    <string name="wind_s">南</string>
+    <string name="wind_sw">西南</string>
+    <string name="wind_w">西</string>
+    <string name="wind_nw">西北</string>
+
+    <!-- 空氣品質等級 -->
+    <string name="aqi_good">良好</string>
+    <string name="aqi_moderate">普通</string>
+    <string name="aqi_light">輕度汙染</string>
+    <string name="aqi_medium">中度汙染</string>
+    <string name="aqi_heavy">重度汙染</string>
+    <string name="aqi_severe">嚴重汙染</string>
+
+    <!-- 錯誤提示 -->
+    <string name="err_no_token_caiyun">未設定彩雲天氣 API Token</string>
+    <string name="err_no_key_qw">未設定和風天氣 API Key</string>
+    <string name="err_no_key_accu">未設定 AccuWeather API Key</string>
+    <string name="err_no_key_ow">未設定 OpenWeather API Key</string>
+    <string name="err_empty_result">介面回傳資料為空</string>
+    <string name="err_caiyun_api">彩雲天氣介面回傳錯誤</string>
+    <string name="err_accu_no_current">AccuWeather 無目前天氣資料</string>
+    <string name="err_accu_location">AccuWeather 位置解析失敗</string>
+    <string name="err_accu_http">AccuWeather 介面錯誤（HTTP %1$d）</string>
+    <string name="err_qw_empty">和風天氣回傳資料為空</string>
+    <string name="err_qw_key_invalid">Key 無效、未開通該介面，或 API Host 與帳號不符——新控制台帳號請在設定中填寫專屬 API Host</string>
+    <string name="err_qw_quota">免費方案呼叫次數已用完</string>
+    <string name="err_qw_region">查詢地區超出訂閱範圍</string>
+    <string name="err_invalid_key">Key 無效或已過期，請在設定中檢查</string>
+    <string name="err_rate_limit">請求過於頻繁，請稍後再試</string>
+    <string name="err_quota">呼叫次數已達上限（AccuWeather 免費方案每日 50 次）</string>
+    <string name="err_server">伺服器錯誤（%1$d）</string>
+    <string name="err_network">網路連線失敗，請檢查網路</string>
+    <string name="err_load_failed">載入失敗</string>
+
+    <!-- 詳細資訊 -->
+    <string name="detail_feels_like">體感溫度</string>
+    <string name="detail_humidity">相對濕度</string>
+    <string name="detail_wind">風</string>
+    <string name="detail_pressure">氣壓</string>
+    <string name="detail_cloud">雲量</string>
+    <string name="detail_uv">紫外線</string>
+    <string name="detail_comfort">舒適度</string>
+    <string name="detail_precip">降水強度</string>
+    <string name="detail_sunrise">日出</string>
+    <string name="detail_sunset">日落</string>
+
+    <!-- 設定頁 -->
+    <string name="settings_source_label">資料來源</string>
+    <string name="source_caiyun">彩雲天氣（中國及亞太）</string>
+    <string name="source_qweather">和風天氣（中國）</string>
+    <string name="source_accu">AccuWeather（全球）</string>
+    <string name="source_openweather">OpenWeather（全球）</string>
+    <string name="settings_token_label">彩雲天氣 API Token</string>
+    <string name="settings_token_hint">貼上你的 Token</string>
+    <string name="settings_get_token">沒有權杖？前往 dashboard.caiyunapp.com 申請 →</string>
+    <string name="settings_qw_label">和風天氣 API Key（中國）</string>
+    <string name="settings_qw_hint">貼上和風天氣 Key</string>
+    <string name="settings_get_qw_key">沒有 Key？前往 console.qweather.com 免費申請 →</string>
+    <string name="settings_qw_host_label">和風天氣 API Host（新版控制台帳號必填）</string>
+    <string name="settings_qw_host_hint">例如 xxx.re.qweatherapi.com</string>
+    <string name="settings_qw_host_note">2024 年後註冊的和風控制台帳號需在「控制台 → 設定 → API Host」查看專屬網域並填到此處；舊免費帳號留空即可（預設 devapi.qweather.com）。</string>
+    <string name="settings_accu_label">AccuWeather API Key（全球城市）</string>
+    <string name="settings_accu_hint">貼上 AccuWeather Key</string>
+    <string name="settings_get_accu_key">沒有 Key？前往 developer.accuweather.com 免費申請 →</string>
+    <string name="settings_ow_label">OpenWeather API Key（全球城市）</string>
+    <string name="settings_ow_hint">貼上 OpenWeather Key</string>
+    <string name="settings_get_ow_key">沒有 Key？前往 home.openweathermap.org 免費申請 →</string>
+    <string name="settings_units_label">溫度單位</string>
+    <string name="units_metric">公制（°C）</string>
+    <string name="units_imperial">英制（°F）</string>
+    <string name="settings_units_note">單位只影響顯示；API 請求一律使用攝氏並視需要換算。</string>
+    <string name="settings_keys_note">只需填寫目前選用資料來源的 Key；和風免費方案每日 1000 次、OpenWeather 免費方案每日 1000 次、AccuWeather 免費方案每日 50 次。切換資料來源儲存後首頁會自動重新整理。</string>
+
+    <!-- 語言 -->
+    <string name="settings_language_label">語言</string>
+    <string name="settings_language_note">切換語言後，天氣描述也會以對應語言重新取得。</string>
+    <string name="language_system">跟隨系統</string>
+    <string name="source_not_configured">%1$s（未設定）</string>
+
+    <string name="token_saved">已儲存</string>
+    <string name="no_browser">找不到可用的瀏覽器</string>
+    <string name="settings_about">琉璃天氣 v1.3.0\n\n資料來源：彩雲天氣 / 和風天氣 / AccuWeather / OpenWeather\n玻璃效果：Liquid-Glass-Android（github.com/QWEA0）\n設計參考：開源專案 breezy-weather</string>
+</resources>

@@ -1,6 +1,6 @@
 package com.liuli.weather.util
 
-import java.time.DayOfWeek
+import com.liuli.weather.R
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -12,6 +12,9 @@ import java.util.Locale
 object TimeUtils {
 
     private val zone: ZoneId = ZoneId.systemDefault()
+
+    /** 应用当前语言（用于 DateTimeFormatter 的本地化输出）。 */
+    private fun locale(): Locale = AppCtx.context().resources.configuration.locales[0]
 
     /** "2024-05-01T14:00+08:00" -> epoch millis，解析失败回退当前时间。 */
     fun parseIsoMillis(dt: String?): Long {
@@ -38,28 +41,22 @@ object TimeUtils {
         }
     }
 
+    /** 逐小时/小部件的时刻标签（格式随语言：中文「15时」、英文「3 PM」）。 */
     fun hourLabel(millis: Long): String =
-        Instant.ofEpochMilli(millis).atZone(zone).format(DateTimeFormatter.ofPattern("H时"))
+        Instant.ofEpochMilli(millis).atZone(zone)
+            .format(DateTimeFormatter.ofPattern(AppCtx.str(R.string.time_hour_pattern), locale()))
 
     fun clockLabel(millis: Long): String =
         Instant.ofEpochMilli(millis).atZone(zone).format(DateTimeFormatter.ofPattern("HH:mm"))
 
-    /** 今天 / 明天 / 周一… */
+    /** 今天 / 明天 / 周三…（星期名由系统按语言本地化）。 */
     fun dayLabel(dateMillis: Long): String {
         val date = Instant.ofEpochMilli(dateMillis).atZone(zone).toLocalDate()
         val today = LocalDate.now(zone)
         return when (date) {
-            today -> "今天"
-            today.plusDays(1) -> "明天"
-            else -> when (date.dayOfWeek) {
-                DayOfWeek.MONDAY -> "周一"
-                DayOfWeek.TUESDAY -> "周二"
-                DayOfWeek.WEDNESDAY -> "周三"
-                DayOfWeek.THURSDAY -> "周四"
-                DayOfWeek.FRIDAY -> "周五"
-                DayOfWeek.SATURDAY -> "周六"
-                else -> "周日"
-            }
+            today -> AppCtx.str(R.string.time_today)
+            today.plusDays(1) -> AppCtx.str(R.string.time_tomorrow)
+            else -> date.format(DateTimeFormatter.ofPattern("EEE", locale()))
         }
     }
 }

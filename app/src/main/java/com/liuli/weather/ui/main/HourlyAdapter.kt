@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.liuli.weather.R
 import com.liuli.weather.data.model.HourlyWeather
 import com.liuli.weather.databinding.ItemHourlyBinding
 import com.liuli.weather.util.TimeUtils
@@ -37,7 +38,8 @@ class HourlyAdapter : ListAdapter<HourlyWeather, HourlyAdapter.ViewHolder>(Diff)
             val nowHour = System.currentTimeMillis() / 3_600_000L
             val itemHour = item.time / 3_600_000L
             binding.tvTime.text =
-                if (isFirst && nowHour == itemHour) "现在" else TimeUtils.hourLabel(item.time)
+                if (isFirst && nowHour == itemHour) binding.root.context.getString(R.string.time_now)
+                else TimeUtils.hourLabel(item.time)
             binding.ivIcon.setImageResource(WeatherCodeMapper.iconFor(item.skycon))
             binding.tvTemp.text =
                 "${com.liuli.weather.util.UnitConverter.displayInt(item.temperature, imperial)}°"

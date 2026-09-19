@@ -12,6 +12,9 @@ import com.liuli.weather.data.remote.ApiException
 import com.liuli.weather.data.remote.CaiyunDailyResponse
 import com.liuli.weather.data.remote.CaiyunRealtimeResponse
 import com.liuli.weather.data.remote.RetrofitClient
+import com.liuli.weather.R
+import com.liuli.weather.util.ApiLang
+import com.liuli.weather.util.AppCtx
 import com.liuli.weather.util.TimeUtils
 import kotlin.math.max
 
@@ -21,17 +24,17 @@ class CaiyunSource(private val settings: SettingsStore) : WeatherSource {
     override val id = SettingsStore.SOURCE_CAIYUN
 
     override suspend fun getWeather(loc: LocationInfo): Weather {
-        val token = settings.token ?: throw ApiException("未设置彩云天气 API Token")
+        val token = settings.token ?: throw ApiException(AppCtx.str(R.string.err_no_token_caiyun))
         val lng = RetrofitClient.formatLng(loc)
         val lat = RetrofitClient.formatLat(loc)
 
-        val resp = RetrofitClient.api.weather(token, lng, lat)
+        val resp = RetrofitClient.api.weather(token, lng, lat, lang = ApiLang.caiyun())
         requireOk(resp.status, resp.description)
-        val result = resp.result ?: throw ApiException("接口返回数据为空")
+        val result = resp.result ?: throw ApiException(AppCtx.str(R.string.err_empty_result))
 
         val alerts = result.alert?.content.orEmpty().map { a ->
             WeatherAlert(
-                title = a.title ?: "气象预警",
+                title = a.title ?: AppCtx.str(R.string.wx_unknown),
                 description = a.description ?: "",
                 source = a.source,
                 publishTime = (a.pubtimestamp ?: 0L) * 1000L
@@ -43,7 +46,7 @@ class CaiyunSource(private val settings: SettingsStore) : WeatherSource {
 
     private fun requireOk(status: String?, description: String?) {
         if (status == "error") {
-            throw ApiException(description?.takeIf { it.isNotBlank() } ?: "彩云天气接口返回错误")
+            throw ApiException(description?.takeIf { it.isNotBlank() } ?: AppCtx.str(R.string.err_caiyun_api))
         }
     }
 

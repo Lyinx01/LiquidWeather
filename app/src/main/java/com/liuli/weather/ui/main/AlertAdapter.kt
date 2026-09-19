@@ -40,13 +40,35 @@ class AlertAdapter : ListAdapter<WeatherAlert, AlertAdapter.ViewHolder>(Diff) {
             }
         }
 
-        /** 根据预警级别（标题中的颜色词）给玻璃卡片染色。 */
+        /**
+         * 根据预警级别给玻璃卡片染色。
+         * 预警标题由 API 按当前语言返回，因此颜色词需覆盖多语言
+         * （中/繁/英/日），未命中时用默认灰蓝。
+         */
         private fun tintFor(title: String): Int = when {
-            title.contains("红色") -> 0x66F44336
-            title.contains("橙色") -> 0x66FF9800
-            title.contains("黄色") -> 0x66FFC107
-            title.contains("蓝色") -> 0x662196F3
+            title.matchesAny(RED_WORDS) -> 0x66F44336
+            title.matchesAny(ORANGE_WORDS) -> 0x66FF9800
+            title.matchesAny(YELLOW_WORDS) -> 0x66FFC107
+            title.matchesAny(BLUE_WORDS) -> 0x662196F3
             else -> 0x4D607D8B
+        }
+
+        private fun String.matchesAny(words: Array<String>): Boolean =
+            words.any { contains(it, ignoreCase = true) }
+
+        private companion object {
+            val RED_WORDS = arrayOf(
+                "红色", "紅", "红", "Red", "赤", "特別警報", "特别警报"
+            )
+            val ORANGE_WORDS = arrayOf(
+                "橙色", "橙", "Orange", "大雨", "洪水", "土砂災害"
+            )
+            val YELLOW_WORDS = arrayOf(
+                "黄色", "黃", "黄", "Yellow", "注意報", "注意报"
+            )
+            val BLUE_WORDS = arrayOf(
+                "蓝色", "藍", "蓝", "Blue", "青色", "台风", "颱風", "Typhoon"
+            )
         }
     }
 

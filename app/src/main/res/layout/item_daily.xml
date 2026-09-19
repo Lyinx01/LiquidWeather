@@ -8,12 +8,17 @@
     android:paddingTop="10dp"
     android:paddingBottom="10dp">
 
+    <!-- 日期列：英文/日文星期名称较长，用固定宽度 + 自适应字号避免折行 -->
     <TextView
         android:id="@+id/tv_week"
-        android:layout_width="52dp"
+        android:layout_width="68dp"
         android:layout_height="wrap_content"
-        android:textColor="@color/white"
-        android:textSize="14sp" />
+        android:autoSizeMaxTextSize="14sp"
+        android:autoSizeMinTextSize="10sp"
+        android:autoSizeStepGranularity="1sp"
+        android:autoSizeTextType="uniform"
+        android:maxLines="1"
+        android:textColor="@color/white" />
 
     <ImageView
         android:id="@+id/iv_icon"
