@@ -77,16 +77,20 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
-    /** 让设置页所有玻璃卡片采样根布局背景层（含渐变与柔光装饰）。 */
+    /**
+     * 让设置页所有玻璃卡片采样独立的背景层。
+     * 注意不要指向 root —— root 包含玻璃自身，会形成互相捕获并导致崩溃。
+     */
     private fun setupGlassCards() {
+        val backdrop = binding.settingsBackdrop
         val scrollContent = binding.scroll.getChildAt(0) as? android.view.ViewGroup ?: return
         for (i in 0 until scrollContent.childCount) {
             val child = scrollContent.getChildAt(i)
             if (child is com.example.liquidglass.LiquidGlassView) {
-                child.backdropSource = binding.root
+                child.backdropSource = backdrop
             }
         }
-        binding.glassSave.backdropSource = binding.root
+        binding.glassSave.backdropSource = backdrop
     }
 
     // ---------------------------------------------------------------- save
