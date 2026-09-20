@@ -15,14 +15,12 @@
         android:id="@+id/glass_picker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:aberrationIntensity="2"
-        app:bevelWidth="18dp"
+        app:bevelWidth="28dp"
         app:blurAmount="0.35"
         app:cornerRadius="28dp"
-        app:dispersionStrength="0.16"
-        app:displacementScale="80"
+        app:dispersionStrength="0.32"
         app:glassMaterial="regular"
-        app:refractionHeight="26dp"
+        app:refractionHeight="28dp"
         app:saturation="165"
         app:sensorHighlight="true">
 
