@@ -61,10 +61,10 @@
                 app:bevelWidth="28dp"
                 app:blurAmount="0.35"
                 app:cornerRadius="26dp"
-                app:dispersionStrength="0.32"
+                app:dispersionStrength="0.1"
                 app:glassMaterial="regular"
                 app:refractionHeight="28dp"
-                app:saturation="165"
+                app:saturation="140"
                 app:sensorHighlight="true">
 
                 <LinearLayout
@@ -129,10 +129,10 @@
                 app:bevelWidth="28dp"
                 app:blurAmount="0.35"
                 app:cornerRadius="26dp"
-                app:dispersionStrength="0.32"
+                app:dispersionStrength="0.1"
                 app:glassMaterial="regular"
                 app:refractionHeight="28dp"
-                app:saturation="165"
+                app:saturation="140"
                 app:sensorHighlight="true">
 
                 <LinearLayout
@@ -251,10 +251,10 @@
                 app:bevelWidth="28dp"
                 app:blurAmount="0.35"
                 app:cornerRadius="26dp"
-                app:dispersionStrength="0.32"
+                app:dispersionStrength="0.1"
                 app:glassMaterial="regular"
                 app:refractionHeight="28dp"
-                app:saturation="165"
+                app:saturation="140"
                 app:sensorHighlight="true">
 
                 <LinearLayout
@@ -389,10 +389,10 @@
                 app:bevelWidth="28dp"
                 app:blurAmount="0.3"
                 app:cornerRadius="27dp"
-                app:dispersionStrength="0.32"
+                app:dispersionStrength="0.1"
                 app:glassMaterial="regular"
                 app:refractionHeight="26dp"
-                app:saturation="170"
+                app:saturation="140"
                 app:sensorHighlight="true">
 
                 <TextView

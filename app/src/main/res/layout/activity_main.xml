@@ -168,11 +168,11 @@
                     app:bevelWidth="36dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.32"
+                    app:dispersionStrength="0.1"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
-                    app:saturation="160"
+                    app:saturation="140"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -213,11 +213,11 @@
                     app:bevelWidth="36dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.32"
+                    app:dispersionStrength="0.1"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
-                    app:saturation="160"
+                    app:saturation="140"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -256,11 +256,11 @@
                     app:bevelWidth="36dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.32"
+                    app:dispersionStrength="0.1"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
-                    app:saturation="160"
+                    app:saturation="140"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -301,11 +301,11 @@
                     app:bevelWidth="36dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.32"
+                    app:dispersionStrength="0.1"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
-                    app:saturation="160"
+                    app:saturation="140"
                     app:sensorHighlight="true">
 
                     <LinearLayout
@@ -399,7 +399,7 @@
         android:paddingEnd="28dp"
         app:bevelWidth="24dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.32"
+        app:dispersionStrength="0.1"
         app:glassMaterial="regular"
         app:refractionHeight="20dp"
         app:sensorHighlight="true">
@@ -428,10 +428,10 @@
         android:layout_marginBottom="28dp"
         app:bevelWidth="24dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.32"
+        app:dispersionStrength="0.1"
         app:glassMaterial="regular"
         app:refractionHeight="20dp"
-        app:saturation="170"
+        app:saturation="140"
         app:sensorHighlight="true">
 
         <ImageButton
@@ -455,10 +455,10 @@
         android:layout_marginBottom="28dp"
         app:bevelWidth="24dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.32"
+        app:dispersionStrength="0.1"
         app:glassMaterial="regular"
         app:refractionHeight="20dp"
-        app:saturation="170"
+        app:saturation="140"
         app:sensorHighlight="true">
 
         <ImageButton
