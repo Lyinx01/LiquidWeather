@@ -168,12 +168,13 @@
                     app:bevelWidth="36dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.1"
+                    app:dispersionStrength="0"
+                    app:aberrationIntensity="0"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
                     app:saturation="140"
-                    app:sensorHighlight="true">
+                    app:sensorHighlight="false">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -213,12 +214,13 @@
                     app:bevelWidth="36dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.1"
+                    app:dispersionStrength="0"
+                    app:aberrationIntensity="0"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
                     app:saturation="140"
-                    app:sensorHighlight="true">
+                    app:sensorHighlight="false">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -256,12 +258,13 @@
                     app:bevelWidth="36dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.1"
+                    app:dispersionStrength="0"
+                    app:aberrationIntensity="0"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
                     app:saturation="140"
-                    app:sensorHighlight="true">
+                    app:sensorHighlight="false">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -301,12 +304,13 @@
                     app:bevelWidth="36dp"
                     app:blurAmount="0.4"
                     app:cornerRadius="32dp"
-                    app:dispersionStrength="0.1"
+                    app:dispersionStrength="0"
+                    app:aberrationIntensity="0"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
                     app:refractionHeight="34dp"
                     app:saturation="140"
-                    app:sensorHighlight="true">
+                    app:sensorHighlight="false">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -399,10 +403,11 @@
         android:paddingEnd="28dp"
         app:bevelWidth="24dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.1"
+        app:dispersionStrength="0"
+        app:aberrationIntensity="0"
         app:glassMaterial="regular"
         app:refractionHeight="20dp"
-        app:sensorHighlight="true">
+        app:sensorHighlight="false">
 
         <TextView
             android:id="@+id/tv_title"
@@ -428,11 +433,12 @@
         android:layout_marginBottom="28dp"
         app:bevelWidth="24dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.1"
+        app:dispersionStrength="0"
+        app:aberrationIntensity="0"
         app:glassMaterial="regular"
         app:refractionHeight="20dp"
         app:saturation="140"
-        app:sensorHighlight="true">
+        app:sensorHighlight="false">
 
         <ImageButton
             android:id="@+id/btn_refresh"
@@ -455,11 +461,12 @@
         android:layout_marginBottom="28dp"
         app:bevelWidth="24dp"
         app:cornerRadius="999dp"
-        app:dispersionStrength="0.1"
+        app:dispersionStrength="0"
+        app:aberrationIntensity="0"
         app:glassMaterial="regular"
         app:refractionHeight="20dp"
         app:saturation="140"
-        app:sensorHighlight="true">
+        app:sensorHighlight="false">
 
         <ImageButton
             android:id="@+id/btn_settings"

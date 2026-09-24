@@ -61,11 +61,12 @@
                 app:bevelWidth="28dp"
                 app:blurAmount="0.35"
                 app:cornerRadius="26dp"
-                app:dispersionStrength="0.1"
+                app:dispersionStrength="0"
+                app:aberrationIntensity="0"
                 app:glassMaterial="regular"
                 app:refractionHeight="28dp"
                 app:saturation="140"
-                app:sensorHighlight="true">
+                app:sensorHighlight="false">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -129,11 +130,12 @@
                 app:bevelWidth="28dp"
                 app:blurAmount="0.35"
                 app:cornerRadius="26dp"
-                app:dispersionStrength="0.1"
+                app:dispersionStrength="0"
+                app:aberrationIntensity="0"
                 app:glassMaterial="regular"
                 app:refractionHeight="28dp"
                 app:saturation="140"
-                app:sensorHighlight="true">
+                app:sensorHighlight="false">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -251,11 +253,12 @@
                 app:bevelWidth="28dp"
                 app:blurAmount="0.35"
                 app:cornerRadius="26dp"
-                app:dispersionStrength="0.1"
+                app:dispersionStrength="0"
+                app:aberrationIntensity="0"
                 app:glassMaterial="regular"
                 app:refractionHeight="28dp"
                 app:saturation="140"
-                app:sensorHighlight="true">
+                app:sensorHighlight="false">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -389,11 +392,12 @@
                 app:bevelWidth="28dp"
                 app:blurAmount="0.3"
                 app:cornerRadius="27dp"
-                app:dispersionStrength="0.1"
+                app:dispersionStrength="0"
+                app:aberrationIntensity="0"
                 app:glassMaterial="regular"
                 app:refractionHeight="26dp"
                 app:saturation="140"
-                app:sensorHighlight="true">
+                app:sensorHighlight="false">
 
                 <TextView
                     android:id="@+id/btn_save"
