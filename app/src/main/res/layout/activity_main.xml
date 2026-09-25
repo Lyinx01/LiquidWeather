@@ -165,15 +165,15 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="28dp"
-                    app:blurAmount="0.6"
+                    app:bevelWidth="32dp"
+                    app:blurAmount="0.75"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0"
                     app:aberrationIntensity="0"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
-                    app:refractionHeight="24dp"
-                    app:saturation="140"
+                    app:refractionHeight="28dp"
+                    app:saturation="150"
                     app:sensorHighlight="false">
 
                     <LinearLayout
@@ -211,15 +211,15 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="28dp"
-                    app:blurAmount="0.6"
+                    app:bevelWidth="32dp"
+                    app:blurAmount="0.75"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0"
                     app:aberrationIntensity="0"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
-                    app:refractionHeight="24dp"
-                    app:saturation="140"
+                    app:refractionHeight="28dp"
+                    app:saturation="150"
                     app:sensorHighlight="false">
 
                     <LinearLayout
@@ -255,15 +255,15 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="28dp"
-                    app:blurAmount="0.6"
+                    app:bevelWidth="32dp"
+                    app:blurAmount="0.75"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0"
                     app:aberrationIntensity="0"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
-                    app:refractionHeight="24dp"
-                    app:saturation="140"
+                    app:refractionHeight="28dp"
+                    app:saturation="150"
                     app:sensorHighlight="false">
 
                     <LinearLayout
@@ -301,15 +301,15 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:adaptiveTint="true"
-                    app:bevelWidth="28dp"
-                    app:blurAmount="0.6"
+                    app:bevelWidth="32dp"
+                    app:blurAmount="0.75"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0"
                     app:aberrationIntensity="0"
                     app:glassMaterial="regular"
                     app:glassTint="#16FFFFFF"
-                    app:refractionHeight="24dp"
-                    app:saturation="140"
+                    app:refractionHeight="28dp"
+                    app:saturation="150"
                     app:sensorHighlight="false">
 
                     <LinearLayout
@@ -401,13 +401,14 @@
         android:minWidth="180dp"
         android:paddingStart="28dp"
         android:paddingEnd="28dp"
-        app:bevelWidth="18dp"
+        app:bevelWidth="22dp"
         app:cornerRadius="999dp"
-        app:blurAmount="0.4"
+        app:blurAmount="0.6"
         app:dispersionStrength="0"
         app:aberrationIntensity="0"
         app:glassMaterial="regular"
-        app:refractionHeight="16dp"
+        app:saturation="150"
+        app:refractionHeight="20dp"
         app:sensorHighlight="false">
 
         <TextView
@@ -432,14 +433,14 @@
         android:layout_gravity="start|bottom"
         android:layout_marginStart="20dp"
         android:layout_marginBottom="28dp"
-        app:bevelWidth="18dp"
+        app:bevelWidth="22dp"
         app:cornerRadius="999dp"
-        app:blurAmount="0.4"
+        app:blurAmount="0.6"
         app:dispersionStrength="0"
         app:aberrationIntensity="0"
         app:glassMaterial="regular"
-        app:refractionHeight="16dp"
-        app:saturation="140"
+        app:refractionHeight="20dp"
+        app:saturation="150"
         app:sensorHighlight="false">
 
         <ImageButton
@@ -461,14 +462,14 @@
         android:layout_gravity="end|bottom"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="28dp"
-        app:bevelWidth="18dp"
+        app:bevelWidth="22dp"
         app:cornerRadius="999dp"
-        app:blurAmount="0.4"
+        app:blurAmount="0.6"
         app:dispersionStrength="0"
         app:aberrationIntensity="0"
         app:glassMaterial="regular"
-        app:refractionHeight="16dp"
-        app:saturation="140"
+        app:refractionHeight="20dp"
+        app:saturation="150"
         app:sensorHighlight="false">
 
         <ImageButton

@@ -6,13 +6,14 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="4dp"
     android:layout_marginBottom="10dp"
-    app:bevelWidth="18dp"
+    app:bevelWidth="22dp"
     app:cornerRadius="22dp"
-    app:blurAmount="0.35"
+    app:blurAmount="0.5"
     app:dispersionStrength="0"
     app:aberrationIntensity="0"
     app:glassMaterial="regular"
-    app:refractionHeight="14dp">
+    app:saturation="150"
+    app:refractionHeight="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"

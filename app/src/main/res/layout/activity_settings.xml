@@ -58,14 +58,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                app:bevelWidth="26dp"
-                app:blurAmount="0.6"
+                app:bevelWidth="30dp"
+                app:blurAmount="0.75"
                 app:cornerRadius="26dp"
                 app:dispersionStrength="0"
                 app:aberrationIntensity="0"
                 app:glassMaterial="regular"
-                app:refractionHeight="24dp"
-                app:saturation="140"
+                app:refractionHeight="28dp"
+                app:saturation="150"
                 app:sensorHighlight="false">
 
                 <LinearLayout
@@ -127,14 +127,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                app:bevelWidth="26dp"
-                app:blurAmount="0.6"
+                app:bevelWidth="30dp"
+                app:blurAmount="0.75"
                 app:cornerRadius="26dp"
                 app:dispersionStrength="0"
                 app:aberrationIntensity="0"
                 app:glassMaterial="regular"
-                app:refractionHeight="24dp"
-                app:saturation="140"
+                app:refractionHeight="28dp"
+                app:saturation="150"
                 app:sensorHighlight="false">
 
                 <LinearLayout
@@ -250,14 +250,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                app:bevelWidth="26dp"
-                app:blurAmount="0.6"
+                app:bevelWidth="30dp"
+                app:blurAmount="0.75"
                 app:cornerRadius="26dp"
                 app:dispersionStrength="0"
                 app:aberrationIntensity="0"
                 app:glassMaterial="regular"
-                app:refractionHeight="24dp"
-                app:saturation="140"
+                app:refractionHeight="28dp"
+                app:saturation="150"
                 app:sensorHighlight="false">
 
                 <LinearLayout
@@ -389,14 +389,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
                 android:layout_marginTop="18dp"
-                app:bevelWidth="26dp"
-                app:blurAmount="0.6"
+                app:bevelWidth="30dp"
+                app:blurAmount="0.75"
                 app:cornerRadius="27dp"
                 app:dispersionStrength="0"
                 app:aberrationIntensity="0"
                 app:glassMaterial="regular"
-                app:refractionHeight="24dp"
-                app:saturation="140"
+                app:refractionHeight="28dp"
+                app:saturation="150"
                 app:sensorHighlight="false">
 
                 <TextView
