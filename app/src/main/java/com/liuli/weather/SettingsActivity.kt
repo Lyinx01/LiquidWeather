@@ -21,6 +21,7 @@ import androidx.core.view.updatePadding
 import com.liuli.weather.data.prefs.SettingsStore
 import com.liuli.weather.databinding.ActivitySettingsBinding
 import com.liuli.weather.ui.common.GlassPickerDialog
+import kotlin.math.hypot
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -47,8 +48,14 @@ class SettingsActivity : AppCompatActivity() {
     /** 收起动画只跑一次的护栏。 */
     private var closeAnimated = false
 
-    /** 页面根视图的圆角（视图局部像素，随缩放换算屏幕半径）。 */
-    private var outlineRadiusPx = 0f
+    // 圆形揭示裁剪的当前状态（根视图坐标，根视图本身不做变换）
+    private var revealCircleMode = false
+    private var revealCx = 0f
+    private var revealCy = 0f
+    private var revealR = 0f
+
+    /** 非圆形模式（整页呈现）下的圆角。 */
+    private var rectRadiusPx = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -130,81 +137,114 @@ class SettingsActivity : AppCompatActivity() {
     // ------------------------------------------------- iOS 式进出场动画
 
     /**
-     * 从主页设置图标位置放大展开（iOS 应用启动动画）：
-     * 窗口透明，动画作用于页面根视图——初始把整页缩到图标大小并定位到图标中心，
-     * 随后按 iOS 曲线放大铺满；收起时反向缩回图标并渐隐，主页模糊同步解除。
-     * 圆角裁剪跟随缩放：图标大小处近似 iOS 图标的圆角，铺满时为页面圆角。
+     * 从主页设置图标做圆形揭示（iOS 应用启动动画的圆形态）：
+     * 窗口透明、根视图不变形，用 ViewOutlineProvider 在根视图上裁出一个圆——
+     * 展开时圆从设置图标的位置与大小开始，按 iOS 曲线扩张到覆盖全屏；
+     * 收起时圆从全屏缩回图标并渐隐。起止的圆与图标完全重合，两个方向一致。
+     * 揭示期间页面内容以图标为轴心做轻微缩放（1.06 -> 1.0），增加纵深而保持原布局。
      */
     private fun setupLaunchMorph(savedInstanceState: Bundle?) {
         srcCx = intent.getIntExtra(EXTRA_SRC_CX, 0)
         srcCy = intent.getIntExtra(EXTRA_SRC_CY, 0)
         srcW = intent.getIntExtra(EXTRA_SRC_W, 0)
         srcH = intent.getIntExtra(EXTRA_SRC_H, 0)
+        rectRadiusPx = dp(28).toFloat()
         binding.root.clipToOutline = true
         binding.root.outlineProvider = object : ViewOutlineProvider() {
             override fun getOutline(view: View, outline: Outline) {
-                outline.setRoundRect(0, 0, view.width, view.height, outlineRadiusPx)
+                if (revealCircleMode) {
+                    val r = revealR
+                    outline.setRoundRect(
+                        (revealCx - r).toInt(), (revealCy - r).toInt(),
+                        (revealCx + r).toInt(), (revealCy + r).toInt(),
+                        r
+                    )
+                } else {
+                    outline.setRoundRect(0, 0, view.width, view.height, rectRadiusPx)
+                }
             }
         }
         if (savedInstanceState == null && srcW > 0) {
-            // 首帧前隐藏整页，布局完成后从图标位置展开，避免全屏内容闪现
+            // 首帧前隐藏整页，布局完成后从图标圆形展开，避免全屏内容闪现
             binding.root.alpha = 0f
-            binding.root.post { playMorph(open = true) }
+            binding.root.post { playReveal(open = true) }
         } else {
             // 语言切换重建（Intent 复带 extras）或来源不明：直接整页呈现
-            outlineRadiusPx = dp(28).toFloat()
+            revealCircleMode = false
             binding.root.invalidateOutline()
         }
     }
 
-    private fun playMorph(open: Boolean, onEnd: (() -> Unit)? = null) {
+    /** 把揭示期间的内容缩放与位移应用到页面的两个直接子层（背景层 + 滚动内容）。 */
+    private fun applyContentScale(scale: Float) {
+        listOf(binding.settingsBackdrop, binding.scroll).forEach { child ->
+            child.pivotX = srcCx.toFloat()
+            child.pivotY = srcCy.toFloat()
+            child.scaleX = scale
+            child.scaleY = scale
+        }
+    }
+
+    private fun playReveal(open: Boolean, onEnd: (() -> Unit)? = null) {
         val root = binding.root
         val w = root.width.toFloat()
         val h = root.height.toFloat()
-        if (w <= 0f || h <= 0f) {
+        if (w <= 0f || h <= 0f || srcW <= 0) {
+            if (!open) {
+                revealCircleMode = false
+                root.invalidateOutline()
+                applyContentScale(1f)
+                root.alpha = 1f
+            }
             onEnd?.invoke()
             return
         }
 
-        val fullRadius = dp(28).toFloat()
-        val iconRadius = (srcW * 0.28f).coerceAtLeast(fullRadius / 4f)
-        val scaleStart = (srcW.toFloat() / w).coerceIn(0.04f, 1f)
-        val fromS = if (open) scaleStart else 1f
-        val toS = if (open) 1f else scaleStart
-        val fromCx = if (open) srcCx.toFloat() else w / 2f
-        val toCx = if (open) w / 2f else srcCx.toFloat()
-        val fromCy = if (open) srcCy.toFloat() else h / 2f
-        val toCy = if (open) h / 2f else srcCy.toFloat()
-        val fromR = if (open) iconRadius else fullRadius
-        val toR = if (open) fullRadius else iconRadius
-        val fromA = if (open) 0.55f else 1f
+        // 圆心 = 图标中心；起始半径 = 图标外接圆；终止半径 = 覆盖全屏的最小圆
+        val cx = srcCx.toFloat().coerceIn(0f, w)
+        val cy = srcCy.toFloat().coerceIn(0f, h)
+        val rStart = (maxOf(srcW, srcH) / 2f + dp(2)).coerceAtLeast(dp(8).toFloat())
+        val rEnd = maxOf(
+            hypot(cx, cy), hypot(w - cx, cy),
+            hypot(cx, h - cy), hypot(w - cx, h - cy)
+        ) + dp(2)
+        val fromR = if (open) rStart else rEnd
+        val toR = if (open) rEnd else rStart
+        val fromA = if (open) 0.85f else 1f
         val toA = if (open) 1f else 0f
+        val fromS = if (open) 1.06f else 1f
+        val toS = if (open) 1f else 1.06f
 
-        root.pivotX = 0f
-        root.pivotY = 0f
+        // 收起从"圆盖全屏"起跳，与矩形模式无视觉差异；展开结束切回矩形模式
+        revealCircleMode = true
+        revealCx = cx
+        revealCy = cy
+        revealR = fromR
+        root.invalidateOutline()
+
         if (!open) {
             // 收起一开始就通知主页解除模糊，两条动画并行（与 iOS 一致）
             revealMain?.invoke()
         }
         ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = if (open) 420L else 360L
+            duration = if (open) 460L else 380L
             interpolator = PathInterpolator(0.32f, 0.72f, 0f, 1f)
             addUpdateListener { anim ->
                 val t = anim.animatedValue as Float
-                val s = fromS + (toS - fromS) * t
-                root.scaleX = s
-                root.scaleY = s
-                root.translationX = fromCx + (toCx - fromCx) * t - s * w / 2f
-                root.translationY = fromCy + (toCy - fromCy) * t - s * h / 2f
-                root.alpha = fromA + (toA - fromA) * t
-                outlineRadiusPx = (fromR + (toR - fromR) * t) / s
+                revealR = fromR + (toR - fromR) * t
                 root.invalidateOutline()
+                root.alpha = fromA + (toA - fromA) * t
+                applyContentScale(fromS + (toS - fromS) * t)
             }
             doOnEnd {
                 if (open) {
-                    outlineRadiusPx = fullRadius
-                    root.invalidateOutline()
+                    // 圆已覆盖全屏，切回整页矩形模式，后续帧无裁剪痕迹
+                    revealCircleMode = false
+                    revealR = 0f
+                    root.alpha = 1f
+                    applyContentScale(1f)
                 }
+                root.invalidateOutline()
                 onEnd?.invoke()
             }
             start()
@@ -217,7 +257,7 @@ class SettingsActivity : AppCompatActivity() {
             return
         }
         closeAnimated = true
-        playMorph(open = false) {
+        playReveal(open = false) {
             super.finish()
             overridePendingTransition(0, 0)
         }
