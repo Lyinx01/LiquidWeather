@@ -8,12 +8,16 @@
     </style>
 
     <!--
-      设置页专用主题：窗口背景直接设为页面渐变。
-      切换语言会重建 Activity，若窗口背景是默认深色，重建瞬间会闪一下色差；
-      与页面背景一致后过渡几乎不可见。
+      设置页专用主题：窗口半透明 + 透明窗口背景。
+      进出场动画在应用内做（页面根视图从主页设置图标缩放展开/缩回，iOS 启动式），
+      动画期间四周能看到主页，因此窗口必须透明；页面渐变背景由布局内的
+      settings_backdrop 层提供。
+      语言切换重建 Activity 时不再有窗口背景兜底，短暂露出的是模糊的主页，
+      观感一致，不会出现色差闪屏。
     -->
     <style name="Theme.LiquidWeather.Settings" parent="Theme.LiquidWeather">
-        <item name="android:windowBackground">@drawable/bg_settings</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowAnimationStyle">@style/GlassWindowAnimation</item>
     </style>
 

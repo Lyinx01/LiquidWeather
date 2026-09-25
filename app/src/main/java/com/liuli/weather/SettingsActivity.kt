@@ -1,13 +1,18 @@
 package com.liuli.weather
 
+import android.animation.ValueAnimator
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Outline
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.view.ViewOutlineProvider
+import android.view.animation.PathInterpolator
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.animation.doOnEnd
 import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -32,6 +37,18 @@ class SettingsActivity : AppCompatActivity() {
         SettingsStore.SOURCE_ACCU,
         SettingsStore.SOURCE_OPENWEATHER
     )
+
+    /** 主页设置图标的屏幕矩形（圆心 + 尺寸），展开/收起动画的起止位置。 */
+    private var srcCx = 0
+    private var srcCy = 0
+    private var srcW = 0
+    private var srcH = 0
+
+    /** 收起动画只跑一次的护栏。 */
+    private var closeAnimated = false
+
+    /** 页面根视图的圆角（视图局部像素，随缩放换算屏幕半径）。 */
+    private var outlineRadiusPx = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,6 +90,8 @@ class SettingsActivity : AppCompatActivity() {
         com.liuli.weather.ui.common.GlassPressEffect.attach(
             binding.glassSave, null, binding.btnSave
         )
+
+        setupLaunchMorph(savedInstanceState)
     }
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
@@ -106,6 +125,102 @@ class SettingsActivity : AppCompatActivity() {
         Toast.makeText(this, R.string.token_saved, Toast.LENGTH_SHORT).show()
         setResult(RESULT_OK)
         finish()
+    }
+
+    // ------------------------------------------------- iOS 式进出场动画
+
+    /**
+     * 从主页设置图标位置放大展开（iOS 应用启动动画）：
+     * 窗口透明，动画作用于页面根视图——初始把整页缩到图标大小并定位到图标中心，
+     * 随后按 iOS 曲线放大铺满；收起时反向缩回图标并渐隐，主页模糊同步解除。
+     * 圆角裁剪跟随缩放：图标大小处近似 iOS 图标的圆角，铺满时为页面圆角。
+     */
+    private fun setupLaunchMorph(savedInstanceState: Bundle?) {
+        srcCx = intent.getIntExtra(EXTRA_SRC_CX, 0)
+        srcCy = intent.getIntExtra(EXTRA_SRC_CY, 0)
+        srcW = intent.getIntExtra(EXTRA_SRC_W, 0)
+        srcH = intent.getIntExtra(EXTRA_SRC_H, 0)
+        binding.root.clipToOutline = true
+        binding.root.outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, outlineRadiusPx)
+            }
+        }
+        if (savedInstanceState == null && srcW > 0) {
+            // 首帧前隐藏整页，布局完成后从图标位置展开，避免全屏内容闪现
+            binding.root.alpha = 0f
+            binding.root.post { playMorph(open = true) }
+        } else {
+            // 语言切换重建（Intent 复带 extras）或来源不明：直接整页呈现
+            outlineRadiusPx = dp(28).toFloat()
+            binding.root.invalidateOutline()
+        }
+    }
+
+    private fun playMorph(open: Boolean, onEnd: (() -> Unit)? = null) {
+        val root = binding.root
+        val w = root.width.toFloat()
+        val h = root.height.toFloat()
+        if (w <= 0f || h <= 0f) {
+            onEnd?.invoke()
+            return
+        }
+
+        val fullRadius = dp(28).toFloat()
+        val iconRadius = (srcW * 0.28f).coerceAtLeast(fullRadius / 4f)
+        val scaleStart = (srcW.toFloat() / w).coerceIn(0.04f, 1f)
+        val fromS = if (open) scaleStart else 1f
+        val toS = if (open) 1f else scaleStart
+        val fromCx = if (open) srcCx.toFloat() else w / 2f
+        val toCx = if (open) w / 2f else srcCx.toFloat()
+        val fromCy = if (open) srcCy.toFloat() else h / 2f
+        val toCy = if (open) h / 2f else srcCy.toFloat()
+        val fromR = if (open) iconRadius else fullRadius
+        val toR = if (open) fullRadius else iconRadius
+        val fromA = if (open) 0.55f else 1f
+        val toA = if (open) 1f else 0f
+
+        root.pivotX = 0f
+        root.pivotY = 0f
+        if (!open) {
+            // 收起一开始就通知主页解除模糊，两条动画并行（与 iOS 一致）
+            revealMain?.invoke()
+        }
+        ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = if (open) 420L else 360L
+            interpolator = PathInterpolator(0.32f, 0.72f, 0f, 1f)
+            addUpdateListener { anim ->
+                val t = anim.animatedValue as Float
+                val s = fromS + (toS - fromS) * t
+                root.scaleX = s
+                root.scaleY = s
+                root.translationX = fromCx + (toCx - fromCx) * t - s * w / 2f
+                root.translationY = fromCy + (toCy - fromCy) * t - s * h / 2f
+                root.alpha = fromA + (toA - fromA) * t
+                outlineRadiusPx = (fromR + (toR - fromR) * t) / s
+                root.invalidateOutline()
+            }
+            doOnEnd {
+                if (open) {
+                    outlineRadiusPx = fullRadius
+                    root.invalidateOutline()
+                }
+                onEnd?.invoke()
+            }
+            start()
+        }
+    }
+
+    override fun finish() {
+        if (closeAnimated || binding.root.width <= 0 || srcW <= 0) {
+            super.finish()
+            return
+        }
+        closeAnimated = true
+        playMorph(open = false) {
+            super.finish()
+            overridePendingTransition(0, 0)
+        }
     }
 
     // ---------------------------------------------------------------- pickers
@@ -260,5 +375,18 @@ class SettingsActivity : AppCompatActivity() {
         } catch (e: ActivityNotFoundException) {
             Toast.makeText(this, R.string.no_browser, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    companion object {
+        const val EXTRA_SRC_CX = "src_cx"
+        const val EXTRA_SRC_CY = "src_cy"
+        const val EXTRA_SRC_W = "src_w"
+        const val EXTRA_SRC_H = "src_h"
+
+        /**
+         * 设置页收起动画开始时通知主页解除模糊（进程内跨 Activity 回调）。
+         * 由 MainActivity 在 onCreate 注册、onDestroy 注销。
+         */
+        var revealMain: (() -> Unit)? = null
     }
 }

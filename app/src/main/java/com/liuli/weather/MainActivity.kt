@@ -4,7 +4,10 @@ import android.Manifest
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Intent
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -78,6 +81,11 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     /** 刷新图标的旋转动画。 */
     private var refreshAnimator: ObjectAnimator? = null
 
+    // 打开设置时的主页过渡：整体模糊 + 压暗（iOS 应用启动时主屏幕的退隐效果）
+    private lateinit var transitionScrim: View
+    private var transitionAnimator: ValueAnimator? = null
+    private var currentBlurPx = 0f
+
     /** 卡片低频刷新：只做 invalidate，库在背景哈希变化时才真正重采，避免逐帧全量采样。 */
     private val cardRefreshRunnable = object : Runnable {
         override fun run() {
@@ -119,6 +127,10 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        setupTransitionScrim()
+        // 设置页收起动画开始时回调，主页同步解除模糊（进程内跨 Activity 通知）
+        SettingsActivity.revealMain = { revealMainFromTransition() }
 
         setupInsets()
         setupGlass()
@@ -343,6 +355,10 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         backgroundAnimating = true
         backgroundAnimators.forEach { it.resume() }
         applyGlassDynamicPolicy()
+        // 兜底：设置页关闭后回到前台时解除过渡模糊（正常路径由 revealMain 回调触发）
+        if (currentBlurPx > 0f) {
+            revealMainFromTransition()
+        }
     }
 
     private fun setupTopBar() {
@@ -539,7 +555,91 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     // ---------------------------------------------------------------- actions
 
     private fun openSettings() {
-        settingsLauncher.launch(Intent(this, SettingsActivity::class.java))
+        // 记录设置图标的屏幕位置，设置页按 iOS 启动式从该位置放大展开
+        val loc = IntArray(2)
+        binding.glassBtnSettings.getLocationOnScreen(loc)
+        val intent = Intent(this, SettingsActivity::class.java).putExtras(
+            Bundle().apply {
+                putInt(SettingsActivity.EXTRA_SRC_CX, loc[0] + binding.glassBtnSettings.width / 2)
+                putInt(SettingsActivity.EXTRA_SRC_CY, loc[1] + binding.glassBtnSettings.height / 2)
+                putInt(SettingsActivity.EXTRA_SRC_W, binding.glassBtnSettings.width)
+                putInt(SettingsActivity.EXTRA_SRC_H, binding.glassBtnSettings.height)
+            }
+        )
+        blurMainForTransition()
+        // 系统窗口动画关掉，展开完全由应用内动画呈现
+        val options = androidx.core.app.ActivityOptionsCompat.makeCustomAnimation(this, 0, 0)
+        settingsLauncher.launch(intent, options)
+    }
+
+    // ------------------------------------------------- settings transition
+
+    /** 过渡用的压暗层：盖在 mainRoot 最上层，动画结束即隐藏。 */
+    private fun setupTransitionScrim() {
+        transitionScrim = View(this).apply {
+            setBackgroundColor(0xFF000000.toInt())
+            alpha = 0f
+            visibility = View.GONE
+        }
+        binding.mainRoot.addView(
+            transitionScrim,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+    }
+
+    /** 主页整体模糊 + 压暗，与设置页展开动画同步（速率曲线同 iOS）。 */
+    private fun blurMainForTransition() {
+        transitionAnimator?.cancel()
+        transitionScrim.visibility = View.VISIBLE
+        val blurTo = dp(22).toFloat()
+        transitionAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 420L
+            interpolator = com.liuli.weather.ui.common.Motion.iosAppLaunch
+            addUpdateListener {
+                val t = it.animatedValue as Float
+                applyMainBlur(blurTo * t)
+                transitionScrim.alpha = 0.22f * t
+            }
+            start()
+        }
+    }
+
+    /** 解除主页模糊与压暗；设置页开始缩回图标时由其回调触发，两条动画并行。 */
+    private fun revealMainFromTransition() {
+        transitionAnimator?.cancel()
+        val from = currentBlurPx
+        if (from <= 0.5f) {
+            transitionScrim.visibility = View.GONE
+            return
+        }
+        val blurMax = dp(22).toFloat()
+        transitionAnimator = ValueAnimator.ofFloat(from, 0f).apply {
+            duration = 380L
+            interpolator = com.liuli.weather.ui.common.Motion.iosAppLaunch
+            addUpdateListener {
+                val v = it.animatedValue as Float
+                applyMainBlur(v)
+                transitionScrim.alpha = 0.22f * (v / blurMax)
+                if (v <= 0.5f) transitionScrim.visibility = View.GONE
+            }
+            start()
+        }
+    }
+
+    private fun applyMainBlur(radiusPx: Float) {
+        currentBlurPx = radiusPx
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            binding.mainRoot.setRenderEffect(
+                if (radiusPx >= 0.5f) {
+                    RenderEffect.createBlurEffect(radiusPx, radiusPx, Shader.TileMode.CLAMP)
+                } else {
+                    null
+                }
+            )
+        }
     }
 
     private fun requestGpsLocation() {
@@ -590,6 +690,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         glassIdleHandler.removeCallbacks(glassIdleRunnable)
         backgroundAnimators.forEach { it.cancel() }
         backgroundAnimators.clear()
+        transitionAnimator?.cancel()
+        SettingsActivity.revealMain = null
     }
 
     companion object {
