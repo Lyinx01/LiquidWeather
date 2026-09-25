@@ -8,7 +8,7 @@
     android:layout_marginBottom="10dp"
     app:bevelWidth="22dp"
     app:cornerRadius="22dp"
-    app:blurAmount="0.5"
+    app:blurAmount="0.45"
     app:dispersionStrength="0"
     app:aberrationIntensity="0"
     app:glassMaterial="regular"

@@ -16,12 +16,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:bevelWidth="30dp"
-        app:blurAmount="0.75"
+        app:blurAmount="0.6"
         app:cornerRadius="28dp"
         app:dispersionStrength="0"
         app:aberrationIntensity="0"
         app:glassMaterial="regular"
-        app:refractionHeight="28dp"
+        app:refractionHeight="24dp"
         app:saturation="150"
         app:sensorHighlight="false">
 

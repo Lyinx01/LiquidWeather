@@ -166,13 +166,13 @@
                     android:visibility="gone"
                     app:adaptiveTint="true"
                     app:bevelWidth="32dp"
-                    app:blurAmount="0.75"
+                    app:blurAmount="0.6"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0"
                     app:aberrationIntensity="0"
                     app:glassMaterial="regular"
-                    app:glassTint="#16FFFFFF"
-                    app:refractionHeight="28dp"
+                    app:glassTint="#10FFFFFF"
+                    app:refractionHeight="24dp"
                     app:saturation="150"
                     app:sensorHighlight="false">
 
@@ -212,13 +212,13 @@
                     android:visibility="gone"
                     app:adaptiveTint="true"
                     app:bevelWidth="32dp"
-                    app:blurAmount="0.75"
+                    app:blurAmount="0.6"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0"
                     app:aberrationIntensity="0"
                     app:glassMaterial="regular"
-                    app:glassTint="#16FFFFFF"
-                    app:refractionHeight="28dp"
+                    app:glassTint="#10FFFFFF"
+                    app:refractionHeight="24dp"
                     app:saturation="150"
                     app:sensorHighlight="false">
 
@@ -256,13 +256,13 @@
                     android:visibility="gone"
                     app:adaptiveTint="true"
                     app:bevelWidth="32dp"
-                    app:blurAmount="0.75"
+                    app:blurAmount="0.6"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0"
                     app:aberrationIntensity="0"
                     app:glassMaterial="regular"
-                    app:glassTint="#16FFFFFF"
-                    app:refractionHeight="28dp"
+                    app:glassTint="#10FFFFFF"
+                    app:refractionHeight="24dp"
                     app:saturation="150"
                     app:sensorHighlight="false">
 
@@ -302,13 +302,13 @@
                     android:visibility="gone"
                     app:adaptiveTint="true"
                     app:bevelWidth="32dp"
-                    app:blurAmount="0.75"
+                    app:blurAmount="0.6"
                     app:cornerRadius="32dp"
                     app:dispersionStrength="0"
                     app:aberrationIntensity="0"
                     app:glassMaterial="regular"
-                    app:glassTint="#16FFFFFF"
-                    app:refractionHeight="28dp"
+                    app:glassTint="#10FFFFFF"
+                    app:refractionHeight="24dp"
                     app:saturation="150"
                     app:sensorHighlight="false">
 
@@ -403,12 +403,12 @@
         android:paddingEnd="28dp"
         app:bevelWidth="22dp"
         app:cornerRadius="999dp"
-        app:blurAmount="0.6"
+        app:blurAmount="0.5"
         app:dispersionStrength="0"
         app:aberrationIntensity="0"
         app:glassMaterial="regular"
         app:saturation="150"
-        app:refractionHeight="20dp"
+        app:refractionHeight="18dp"
         app:sensorHighlight="false">
 
         <TextView
@@ -435,11 +435,11 @@
         android:layout_marginBottom="28dp"
         app:bevelWidth="22dp"
         app:cornerRadius="999dp"
-        app:blurAmount="0.6"
+        app:blurAmount="0.5"
         app:dispersionStrength="0"
         app:aberrationIntensity="0"
         app:glassMaterial="regular"
-        app:refractionHeight="20dp"
+        app:refractionHeight="18dp"
         app:saturation="150"
         app:sensorHighlight="false">
 
@@ -464,11 +464,11 @@
         android:layout_marginBottom="28dp"
         app:bevelWidth="22dp"
         app:cornerRadius="999dp"
-        app:blurAmount="0.6"
+        app:blurAmount="0.5"
         app:dispersionStrength="0"
         app:aberrationIntensity="0"
         app:glassMaterial="regular"
-        app:refractionHeight="20dp"
+        app:refractionHeight="18dp"
         app:saturation="150"
         app:sensorHighlight="false">
 
