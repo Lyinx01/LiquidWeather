@@ -423,9 +423,9 @@ class SettingsActivity : AppCompatActivity() {
             .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(110))
         val contentHost = window.decorView.findViewById<View>(android.R.id.content)
         GlassOverlayCapture.attach(toast.glass, contentHost)
-        // 增强 toast 玻璃质感（库内置默认参数偏弱），与主页卡片档次看齐
+        // 增强 toast 玻璃质感：模糊拉满，折射/棱边向主页卡片的玻璃档次看齐
         toast.glass.apply {
-            blurAmount = 0.55f
+            blurAmount = 1.0f
             refractionHeight = dp(14).toFloat()
             bevelWidth = dp(18).toFloat()
             edgeSoftness = dp(4).toFloat()

@@ -21,8 +21,13 @@ import com.example.liquidglass.LiquidGlassView
 
 object GlassOverlayCapture {
 
-    /** 给浮层玻璃挂内容实时采样；重复调用安全（重复设置仅覆盖回调） */
-    fun attach(glass: LiquidGlassView, contentHost: View) {
+    /**
+     * 给浮层玻璃挂内容实时采样；重复调用安全（重复设置仅覆盖回调）。
+     *
+     * @param downsample 采样降尺寸比例 (0-1]：软件模糊的半径被钳制在 25px，
+     *   小尺寸捕获再拉伸回去可以获得更强的等效模糊（0.35 ≈ 3 倍等效模糊半径）
+     */
+    fun attach(glass: LiquidGlassView, contentHost: View, downsample: Float = 0.35f) {
         var capturing = false
 
         glass.setCustomBackdropCapture { bounds ->
@@ -34,27 +39,23 @@ object GlassOverlayCapture {
             capturing = true
             val wasVisible = glass.visibility == View.VISIBLE
             if (wasVisible) glass.setTransitionVisibility(View.INVISIBLE)
+            // 捕获区域按模糊半径外扩（与库内 enableOptimizedCapture 同思路）：
+            // 高斯模糊在边缘会向外取样，若按精确边界截取，边缘像素会被反复钳制
+            // 形成脏边；外扩后模糊取到的是真实内容，结果拉伸回浮层边界即可
+            val blurRadius = 4f + glass.blurAmount * 32f
+            val margin = blurRadius * 2f
             val bmp = try {
                 captureRegion(
                     contentHost,
-                    glass.left.toFloat(), glass.top.toFloat(),
-                    glass.width.toFloat(), glass.height.toFloat()
+                    glass.left - margin, glass.top - margin,
+                    glass.width + 2f * margin, glass.height + 2f * margin,
+                    downsample
                 )
             } finally {
                 if (wasVisible) glass.setTransitionVisibility(View.VISIBLE)
                 capturing = false
             }
-            bmp ?: return@setCustomBackdropCapture null
-            // bounds 为玻璃局部坐标（0,0,w,h），与截取区域一一对应，整幅返回
-            val x = bounds.left.toInt().coerceIn(0, bmp.width - 2)
-            val y = bounds.top.toInt().coerceIn(0, bmp.height - 2)
-            val w = minOf(bounds.width().toInt(), bmp.width - x).coerceAtLeast(1)
-            val h = minOf(bounds.height().toInt(), bmp.height - y).coerceAtLeast(1)
-            if (x == 0 && y == 0 && w == bmp.width && h == bmp.height) {
-                bmp
-            } else {
-                Bitmap.createBitmap(bmp, x, y, w, h)
-            }
+            bmp
         }
 
         // 内容滚动时重绘玻璃：像素采样必须跟随内容位移，否则出现残影。
@@ -76,13 +77,22 @@ object GlassOverlayCapture {
         }
     }
 
-    /** 软件绘制 host 的指定区域到独立位图（像素，无节点引用） */
-    private fun captureRegion(host: View, left: Float, top: Float, width: Float, height: Float): Bitmap? {
+    /** 软件绘制 host 的指定区域到独立位图（像素，无节点引用）；scale<1 时在缩小的画布上绘制 */
+    private fun captureRegion(
+        host: View,
+        left: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        scale: Float = 1f
+    ): Bitmap? {
         val w = width.toInt()
         val h = height.toInt()
         if (w <= 0 || h <= 0) return null
-        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val s = scale.coerceIn(0.05f, 1f)
+        val bmp = Bitmap.createBitmap((w * s).toInt().coerceAtLeast(1), (h * s).toInt().coerceAtLeast(1), Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
+        if (s < 1f) canvas.scale(s, s)
         canvas.translate(-left, -top)
         host.draw(canvas)
         return bmp
