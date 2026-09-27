@@ -29,7 +29,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.liquidglass.LiquidGlassToast
 import com.example.liquidglass.LiquidGlassView
-import com.liuli.weather.ui.common.GlassOverlayCapture
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.liuli.weather.data.city.City
@@ -125,7 +124,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     }
 
     /**
-     * 玻璃 toast。采样用内容像素快照（GlassOverlayCapture）：折射真实内容且无引用成环。
+     * 玻璃 toast。采样用内容像素快照：直接采样主页内容（GPU 透镜管线，库已修成环）。
      */
     private fun glassToast(
         text: CharSequence,
@@ -136,7 +135,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             .setIconResource(if (withCheck) R.drawable.ic_check else 0)
             .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(150))
         val contentHost = window.decorView.findViewById<ViewGroup>(android.R.id.content)
-        GlassOverlayCapture.attach(toast.glass, contentHost)
+        toast.glass.backdropSource = contentHost
         // GPU 透镜管线（经内容快照隔离），与主页卡片同档次
         toast.glass.apply {
             blurAmount = 0.6f
@@ -671,8 +670,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private fun ensureGlassBar(): com.liuli.weather.databinding.ViewGlassBarBinding {
         glassBar?.let { return it }
         val bar = com.liuli.weather.databinding.ViewGlassBarBinding.inflate(layoutInflater)
-        // 内容快照采样（GlassOverlayCapture）：GPU 透镜折射真实内容且无引用成环
-        GlassOverlayCapture.attach(bar.root, binding.mainRoot)
+        // 内容快照采样：直接采样主页内容（GPU 透镜管线，库已修成环）
+        bar.root.backdropSource = binding.mainRoot
         // 条身消费触摸：防止穿透到下方玻璃触发按压重录，点条身也可收起
         bar.root.isClickable = true
         bar.root.setOnClickListener { dismissGlassBar() }

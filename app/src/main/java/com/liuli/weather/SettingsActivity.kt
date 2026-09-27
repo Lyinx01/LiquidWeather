@@ -21,7 +21,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import com.example.liquidglass.LiquidGlassToast
 import com.liuli.weather.data.prefs.SettingsStore
-import com.liuli.weather.ui.common.GlassOverlayCapture
 import com.liuli.weather.databinding.ActivitySettingsBinding
 import com.liuli.weather.ui.common.GlassPickerDialog
 import kotlin.math.hypot
@@ -418,12 +417,12 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    /** 玻璃 toast。内容快照隔离（GlassOverlayCapture）：GPU 透镜管线、折射真实内容且无引用成环。 */
+    /** 玻璃 toast。直接采样设置页内容（GPU 透镜管线，库已修成环）。 */
     private fun glassToast(text: CharSequence) {
         val toast = LiquidGlassToast.makeText(this, text, LiquidGlassToast.LENGTH_SHORT)
             .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(110))
         val contentHost = window.decorView.findViewById<ViewGroup>(android.R.id.content)
-        GlassOverlayCapture.attach(toast.glass, contentHost)
+        toast.glass.backdropSource = contentHost
         toast.glass.apply {
             blurAmount = 0.6f
             refractionHeight = dp(16).toFloat()

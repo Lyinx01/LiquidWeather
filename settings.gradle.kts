@@ -17,3 +17,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "LiquidWeather"
 include(":app")
+// Liquid Glass 库（源码 vendor 版，Fork 自 QWEA0/Liquid-Glass-Android 并修复采样成环）
+include(":liquidglass")

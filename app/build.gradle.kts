@@ -37,8 +37,8 @@ android {
 }
 
 dependencies {
-    // Liquid Glass UI（QWEA0/Liquid-Glass-Android，经 JitPack 分发）
-    implementation("com.github.QWEA0:liquidglass:v2.0.10")
+    // Liquid Glass UI（源码 vendor：:liquidglass 模块，Fork 自 QWEA0/Liquid-Glass-Android 并修复采样成环）
+    implementation(project(":liquidglass"))
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
