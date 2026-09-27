@@ -66,7 +66,7 @@
                 app:glassMaterial="regular"
                 app:refractionHeight="24dp"
                 app:saturation="150"
-                app:sensorHighlight="false">
+                app:sensorHighlight="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -135,7 +135,7 @@
                 app:glassMaterial="regular"
                 app:refractionHeight="24dp"
                 app:saturation="150"
-                app:sensorHighlight="false">
+                app:sensorHighlight="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -258,7 +258,7 @@
                 app:glassMaterial="regular"
                 app:refractionHeight="24dp"
                 app:saturation="150"
-                app:sensorHighlight="false">
+                app:sensorHighlight="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -397,7 +397,7 @@
                 app:glassMaterial="regular"
                 app:refractionHeight="24dp"
                 app:saturation="150"
-                app:sensorHighlight="false">
+                app:sensorHighlight="true">
 
                 <TextView
                     android:id="@+id/btn_save"

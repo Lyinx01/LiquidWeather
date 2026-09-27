@@ -12,6 +12,7 @@
     app:dispersionStrength="0"
     app:aberrationIntensity="0"
     app:glassMaterial="regular"
+    app:sensorHighlight="true"
     app:saturation="150"
     app:refractionHeight="16dp">
 

@@ -174,7 +174,7 @@
                     app:glassTint="#10FFFFFF"
                     app:refractionHeight="24dp"
                     app:saturation="150"
-                    app:sensorHighlight="false">
+                    app:sensorHighlight="true">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -220,7 +220,7 @@
                     app:glassTint="#10FFFFFF"
                     app:refractionHeight="24dp"
                     app:saturation="150"
-                    app:sensorHighlight="false">
+                    app:sensorHighlight="true">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -264,7 +264,7 @@
                     app:glassTint="#10FFFFFF"
                     app:refractionHeight="24dp"
                     app:saturation="150"
-                    app:sensorHighlight="false">
+                    app:sensorHighlight="true">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -310,7 +310,7 @@
                     app:glassTint="#10FFFFFF"
                     app:refractionHeight="24dp"
                     app:saturation="150"
-                    app:sensorHighlight="false">
+                    app:sensorHighlight="true">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -409,7 +409,7 @@
         app:glassMaterial="regular"
         app:saturation="150"
         app:refractionHeight="18dp"
-        app:sensorHighlight="false">
+        app:sensorHighlight="true">
 
         <TextView
             android:id="@+id/tv_title"
@@ -441,7 +441,7 @@
         app:glassMaterial="regular"
         app:refractionHeight="18dp"
         app:saturation="150"
-        app:sensorHighlight="false">
+        app:sensorHighlight="true">
 
         <ImageButton
             android:id="@+id/btn_refresh"
@@ -470,7 +470,7 @@
         app:glassMaterial="regular"
         app:refractionHeight="18dp"
         app:saturation="150"
-        app:sensorHighlight="false">
+        app:sensorHighlight="true">
 
         <ImageButton
             android:id="@+id/btn_settings"
