@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import com.example.liquidglass.LiquidGlassToast
 import com.liuli.weather.data.prefs.SettingsStore
+import com.liuli.weather.ui.common.GlassOverlayCapture
 import com.liuli.weather.databinding.ActivitySettingsBinding
 import com.liuli.weather.ui.common.GlassPickerDialog
 import kotlin.math.hypot
@@ -421,7 +422,15 @@ class SettingsActivity : AppCompatActivity() {
         val toast = LiquidGlassToast.makeText(this, text, LiquidGlassToast.LENGTH_SHORT)
             .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(110))
         val contentHost = window.decorView.findViewById<View>(android.R.id.content)
-        com.liuli.weather.ui.common.GlassOverlayCapture.attach(toast.glass, contentHost)
+        GlassOverlayCapture.attach(toast.glass, contentHost)
+        // 增强 toast 玻璃质感（库内置默认参数偏弱），与主页卡片档次看齐
+        toast.glass.apply {
+            blurAmount = 0.55f
+            refractionHeight = dp(14).toFloat()
+            bevelWidth = dp(18).toFloat()
+            edgeSoftness = dp(4).toFloat()
+            saturation = 150f
+        }
         toast.show()
     }
 
