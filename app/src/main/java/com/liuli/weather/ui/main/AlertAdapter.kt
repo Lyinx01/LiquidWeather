@@ -34,6 +34,7 @@ class AlertAdapter : ListAdapter<WeatherAlert, AlertAdapter.ViewHolder>(Diff) {
             binding.tvAlertDesc.maxLines = if (expanded) Int.MAX_VALUE else 3
             binding.glassAlert.backdropSource = backdrop
             binding.glassAlert.glassTint = tintFor(item.title)
+            com.liuli.weather.ui.common.GlassSpectralRim.attach(binding.glassAlert)
             binding.glassAlert.setOnClickListener {
                 expanded = !expanded
                 binding.tvAlertDesc.maxLines = if (expanded) Int.MAX_VALUE else 3

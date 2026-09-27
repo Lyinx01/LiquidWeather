@@ -110,13 +110,18 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupGlassCards() {
         val backdrop = binding.settingsBackdrop
         val scrollContent = binding.scroll.getChildAt(0) as? android.view.ViewGroup ?: return
+        val glasses = mutableListOf<com.example.liquidglass.LiquidGlassView>()
         for (i in 0 until scrollContent.childCount) {
             val child = scrollContent.getChildAt(i)
             if (child is com.example.liquidglass.LiquidGlassView) {
                 child.backdropSource = backdrop
+                glasses.add(child)
             }
         }
         binding.glassSave.backdropSource = backdrop
+        glasses.add(binding.glassSave)
+        // 光谱描边：色散观感的安全实现（内容零通道分离，见 GlassSpectralRim 注释）
+        com.liuli.weather.ui.common.GlassSpectralRim.attach(*glasses.toTypedArray())
     }
 
     // ---------------------------------------------------------------- save

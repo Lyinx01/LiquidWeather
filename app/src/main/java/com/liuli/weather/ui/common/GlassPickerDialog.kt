@@ -62,6 +62,7 @@ object GlassPickerDialog {
         binding.glassPicker.backdropSource =
             activity.window?.decorView?.findViewById(android.R.id.content)
         binding.glassPicker.enableDynamicBackground = true
+        GlassSpectralRim.attach(binding.glassPicker)
 
         binding.tvPickerTitle.text = title
         buildOptions(activity, binding.pickerOptions, options, checkedIndex) { index ->

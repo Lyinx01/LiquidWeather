@@ -187,6 +187,10 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private fun setupGlass() {
         floatingGlasses.forEach { it.backdropSource = binding.mainRoot }
         cardGlasses.forEach { it.backdropSource = binding.bgContainer }
+        // 光谱描边：色散观感的安全实现（内容零通道分离，见 GlassSpectralRim 注释）
+        com.liuli.weather.ui.common.GlassSpectralRim.attach(
+            *(floatingGlasses + cardGlasses).toTypedArray()
+        )
 
         binding.scroll.setOnScrollChangeListener { _, _, _, _, _ ->
             onScrollStarted()
