@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.liquidglass.LiquidGlassToast
 import com.example.liquidglass.LiquidGlassView
+import com.liuli.weather.ui.common.GlassOverlayCapture
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.liuli.weather.data.city.City
@@ -122,20 +123,19 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     }
 
     /**
-     * 玻璃 toast。采样源固定为纯天空层（bgContainer 内零玻璃）：采样源里含玻璃时，
-     * 交互触发的重录可能形成 RenderNode 引用成环，光栅化无限递归闪退
-     * （与玻璃错误条同款隔离，见 showGlassBar 注释）。
+     * 玻璃 toast。采样用内容像素快照（GlassOverlayCapture）：折射真实内容且无引用成环。
      */
     private fun glassToast(
         text: CharSequence,
         withCheck: Boolean = false,
         duration: Int = LiquidGlassToast.LENGTH_SHORT
     ) {
-        LiquidGlassToast.makeText(this, text, duration)
+        val toast = LiquidGlassToast.makeText(this, text, duration)
             .setIconResource(if (withCheck) R.drawable.ic_check else 0)
-            .also { it.glass.backdropSource = binding.bgContainer }
             .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(150))
-            .show()
+        val contentHost = window.decorView.findViewById<View>(android.R.id.content)
+        GlassOverlayCapture.attach(toast.glass, contentHost)
+        toast.show()
     }
 
     private val settingsLauncher = registerForActivityResult(
@@ -636,10 +636,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         } else {
             bar.tvBarAction.visibility = View.GONE
         }
-        // 采样纯天空层（bgContainer 内没有其他玻璃）：采样源里含玻璃时，
-        // 交互触发的重录可能形成 RenderNode 引用成环，光栅化时无限递归，
-        // RenderThread 栈溢出闪退（已复现）；卡片们采样 bgContainer 从不出事
-        bar.root.backdropSource = binding.bgContainer
+        // 内容像素快照采样（GlassOverlayCapture）：折射真实内容且无引用成环
+        GlassOverlayCapture.attach(bar.root, binding.mainRoot)
         // 条身消费触摸：防止穿透到下方玻璃触发按压重录，点条身也可收起
         bar.root.isClickable = true
         bar.root.setOnClickListener { dismissGlassBar() }

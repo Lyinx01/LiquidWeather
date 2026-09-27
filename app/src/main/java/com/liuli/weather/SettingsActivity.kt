@@ -416,12 +416,13 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    /** 玻璃 toast。采样源固定为 settingsBackdrop（内含零玻璃），防采样成环闪退（同玻璃错误条）。 */
+    /** 玻璃 toast。采样用内容像素快照（GlassOverlayCapture）：折射真实内容且无引用成环。 */
     private fun glassToast(text: CharSequence) {
-        LiquidGlassToast.makeText(this, text, LiquidGlassToast.LENGTH_SHORT)
-            .also { it.glass.backdropSource = binding.settingsBackdrop }
+        val toast = LiquidGlassToast.makeText(this, text, LiquidGlassToast.LENGTH_SHORT)
             .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(110))
-            .show()
+        val contentHost = window.decorView.findViewById<View>(android.R.id.content)
+        com.liuli.weather.ui.common.GlassOverlayCapture.attach(toast.glass, contentHost)
+        toast.show()
     }
 
     private fun openUrl(url: String) {
