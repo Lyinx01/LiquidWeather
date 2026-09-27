@@ -89,11 +89,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _state.value = MainUiState.Success(cached, fromCache = true)
                 val fresh = System.currentTimeMillis() - cached.fetchedAt < STALE_MS
                 if (!forceRefresh && fresh) return@launch
-            } else {
+            }
+            // 手动刷新时发出 Loading 驱动刷新图标旋转（观察端只转图标、不清界面）；
+            // 有缓存的路径此前从不发 Loading，导致手动刷新看不到旋转动画
+            if (forceRefresh || cached == null) {
                 _state.value = MainUiState.Loading
             }
             try {
-                _state.value = MainUiState.Success(repo.getWeather(loc), fromCache = false)
+                val started = android.os.SystemClock.elapsedRealtime()
+                val fresh = repo.getWeather(loc)
+                if (forceRefresh) {
+                    // 网络过快时补足最短展示时长，保证旋转至少接近一整圈
+                    val remain = MIN_SPIN_MS - (android.os.SystemClock.elapsedRealtime() - started)
+                    if (remain > 0) kotlinx.coroutines.delay(remain)
+                }
+                _state.value = MainUiState.Success(fresh, fromCache = false)
             } catch (e: Exception) {
                 val noToken = !settings.hasTokenForSource(settings.effectiveSource())
                 _state.value = MainUiState.Error(humanMessage(e), cached, noToken)
@@ -119,5 +129,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         private const val STALE_MS = 30 * 60 * 1000L
+
+        /** 手动刷新时旋转指示的最短展示时长（图标转一整圈约 900ms）。 */
+        private const val MIN_SPIN_MS = 800L
     }
 }
