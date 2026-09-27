@@ -624,7 +624,13 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         } else {
             bar.tvBarAction.visibility = View.GONE
         }
-        bar.root.backdropSource = binding.mainRoot
+        // 采样纯天空层（bgContainer 内没有其他玻璃）：采样源里含玻璃时，
+        // 交互触发的重录可能形成 RenderNode 引用成环，光栅化时无限递归，
+        // RenderThread 栈溢出闪退（已复现）；卡片们采样 bgContainer 从不出事
+        bar.root.backdropSource = binding.bgContainer
+        // 条身消费触摸：防止穿透到下方玻璃触发按压重录，点条身也可收起
+        bar.root.isClickable = true
+        bar.root.setOnClickListener { dismissGlassBar() }
         val lp = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.WRAP_CONTENT
