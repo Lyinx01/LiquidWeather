@@ -125,7 +125,9 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     }
 
     /**
-     * 玻璃 toast。采样用内容像素快照：直接采样主页内容（GPU 透镜管线，库已修成环）。
+     * 玻璃 toast。直接采样主页内容（GPU 透镜管线，库已修成环）。
+     * 文字固定深色：主页顶部是浅色天空，亮度计异步采样首帧前默认白字、
+     * 采样后翻深色，会造成「白→黑」闪变——背景色固定，无需自适应。
      */
     private fun glassToast(
         text: CharSequence,
@@ -134,6 +136,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     ) {
         val toast = LiquidGlassToast.makeText(this, text, duration)
             .setIconResource(if (withCheck) R.drawable.ic_check else 0)
+            .setTextColor(0xE6000000.toInt())
             .setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(84))
         val contentHost = window.decorView.findViewById<ViewGroup>(android.R.id.content)
         toast.glass.backdropSource = contentHost

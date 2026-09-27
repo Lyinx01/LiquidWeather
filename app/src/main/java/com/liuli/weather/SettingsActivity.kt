@@ -417,9 +417,10 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    /** 玻璃 toast。直接采样设置页内容（GPU 透镜管线，库已修成环）。 */
+    /** 玻璃 toast。直接采样设置页内容（GPU 透镜管线，库已修成环）。深色底固定白字。 */
     private fun glassToast(text: CharSequence) {
         val toast = LiquidGlassToast.makeText(this, text, LiquidGlassToast.LENGTH_SHORT)
+            .setTextColor(0xF2FFFFFF.toInt())
             .setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(64))
         val contentHost = window.decorView.findViewById<ViewGroup>(android.R.id.content)
         toast.glass.backdropSource = contentHost
