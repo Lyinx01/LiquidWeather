@@ -418,21 +418,9 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    /** 玻璃 toast。直接采样设置页内容（GPU 透镜管线，库已修成环）。文字颜色按后方亮度自适应。 */
+    /** 玻璃 toast。直接采样设置页内容（GPU 透镜管线，库已修成环）。文字颜色按表面亮度自适应。 */
     private fun glassToast(text: CharSequence) {
-        val metrics = resources.displayMetrics
-        val toastW = dp(320).toFloat()
-        val toastH = dp(56).toFloat()
-        val left = ((metrics.widthPixels - toastW) / 2f).coerceAtLeast(0f)
-        val sysTop = window.decorView.rootWindowInsets?.getInsets(
-            androidx.core.view.WindowInsetsCompat.Type.systemBars()
-        )?.top ?: 0
-        val top = (sysTop + dp(64)).toFloat()
-        val tone = GlassTextTone.suggestTextColor(
-            window.decorView.findViewById(android.R.id.content), left, top, toastW, toastH
-        )
         val toast = LiquidGlassToast.makeText(this, text, LiquidGlassToast.LENGTH_SHORT)
-            .setTextColor(tone)
             .setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(64))
         val contentHost = window.decorView.findViewById<ViewGroup>(android.R.id.content)
         toast.glass.backdropSource = contentHost
@@ -443,6 +431,7 @@ class SettingsActivity : AppCompatActivity() {
             edgeSoftness = dp(4).toFloat()
             saturation = 150f
         }
+        GlassTextTone.adaptTextColorToSurface(toast)
         toast.show()
     }
 

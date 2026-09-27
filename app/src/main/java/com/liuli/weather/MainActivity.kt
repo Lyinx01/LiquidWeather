@@ -39,6 +39,7 @@ import com.liuli.weather.data.model.LocationInfo
 import com.liuli.weather.data.model.Weather
 import com.liuli.weather.databinding.ActivityMainBinding
 import com.liuli.weather.ui.city.CityPickerSheet
+import com.liuli.weather.ui.common.GlassTextTone
 import com.liuli.weather.ui.main.AlertAdapter
 import com.liuli.weather.ui.main.DailyAdapter
 import com.liuli.weather.ui.main.DetailsAdapter
@@ -128,23 +129,17 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
      * 玻璃 toast。直接采样主页内容（GPU 透镜管线，库已修成环）。
      * 文字颜色按「文字正后方那一层」的实际亮度自适应（显示前同步测量，首帧即正确）。
      */
+    /**
+     * 玻璃 toast。直接采样主页内容（GPU 透镜管线，库已修成环）。
+     * 文字颜色按「toast 除文字外的实际渲染表面」亮度自适应（入场完成后测量，无闪变）。
+     */
     private fun glassToast(
         text: CharSequence,
         withCheck: Boolean = false,
         duration: Int = LiquidGlassToast.LENGTH_SHORT
     ) {
-        val metrics = resources.displayMetrics
-        // toast 落点估算：顶部居中，宽度上限 320dp（库内 maxWidth）、高约 56dp
-        val toastW = dp(320).toFloat()
-        val toastH = dp(56).toFloat()
-        val left = ((metrics.widthPixels - toastW) / 2f).coerceAtLeast(0f)
-        val top = (topInsetPx + dp(84)).toFloat()
-        val tone = com.liuli.weather.ui.common.GlassTextTone.suggestTextColor(
-            window.decorView.findViewById(android.R.id.content), left, top, toastW, toastH
-        )
         val toast = LiquidGlassToast.makeText(this, text, duration)
             .setIconResource(if (withCheck) R.drawable.ic_check else 0)
-            .setTextColor(tone)
             .setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(84))
         val contentHost = window.decorView.findViewById<ViewGroup>(android.R.id.content)
         toast.glass.backdropSource = contentHost
@@ -156,8 +151,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             edgeSoftness = dp(4).toFloat()
             saturation = 150f
         }
-        toast.show()
-    }
+        GlassTextTone.adaptTextColorToSurface(toast)
+        toast.show()    }
 
     private val settingsLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
