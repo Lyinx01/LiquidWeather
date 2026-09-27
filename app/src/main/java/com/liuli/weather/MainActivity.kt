@@ -18,6 +18,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.animation.doOnEnd
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -78,8 +79,9 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     /** 按住中的玻璃数量：>0 时抑制降频，保持动态采样让折射跟随缩放。 */
     private var pressedGlassCount = 0
 
-    /** 刷新图标的旋转动画。 */
-    private var refreshAnimator: ObjectAnimator? = null
+    /** 刷新图标的旋转动画：spin = 匀速整圈循环；settle = 结束时补完当前一圈归位。 */
+    private var spinAnimator: ObjectAnimator? = null
+    private var settleAnimator: ObjectAnimator? = null
 
     // 打开设置时的主页过渡：整体模糊 + 压暗（iOS 应用启动时主屏幕的退隐效果）
     private lateinit var transitionScrim: View
@@ -385,22 +387,49 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         )
     }
 
-    /** 刷新中：左下角按钮的图标旋转，代替原先的下拉刷新指示器。 */
+    /**
+     * 刷新中：左下角按钮的图标匀速旋转。
+     * 结束（成功或失败都一样）时不瞬间回正，而是按原角速度补完当前这一圈，
+     * 末帧自然落在与静态一致的 0°，视觉上连贯收住。
+     */
     private fun setRefreshing(refreshing: Boolean) {
         if (refreshing) {
-            if (refreshAnimator?.isRunning != true) {
-                refreshAnimator = ObjectAnimator.ofFloat(binding.btnRefresh, View.ROTATION, 0f, 360f)
-                    .apply {
-                        duration = 900L
-                        repeatCount = ValueAnimator.INFINITE
-                        interpolator = LinearInterpolator()
-                    }
-                    .also { it.start() }
-            }
+            // 上一次的收尾动画若还在转，直接取消并从当前角度续转，避免跳变
+            settleAnimator?.cancel()
+            settleAnimator = null
+            if (spinAnimator?.isRunning == true) return
+            val from = binding.btnRefresh.rotation
+            spinAnimator = ObjectAnimator.ofFloat(
+                binding.btnRefresh, View.ROTATION, from, from + 360f
+            ).apply {
+                duration = SPIN_PERIOD_MS
+                repeatCount = ValueAnimator.INFINITE
+                interpolator = LinearInterpolator()
+            }.also { it.start() }
         } else {
-            refreshAnimator?.cancel()
-            refreshAnimator = null
-            binding.btnRefresh.rotation = 0f
+            val spin = spinAnimator
+            if (spin?.isRunning != true) return
+            val current = binding.btnRefresh.rotation % 360f
+            spin.cancel()
+            spinAnimator = null
+            val remain = 360f - current
+            if (remain < 2f || remain > 358f) {
+                // 已在归位角度附近，直接静止
+                binding.btnRefresh.rotation = 0f
+                return
+            }
+            settleAnimator?.cancel()
+            settleAnimator = ObjectAnimator.ofFloat(
+                binding.btnRefresh, View.ROTATION, current, current + remain
+            ).apply {
+                // 与旋转同角速度，保持速度连续
+                duration = (SPIN_PERIOD_MS * remain / 360f).toLong().coerceIn(60L, SPIN_PERIOD_MS)
+                interpolator = LinearInterpolator()
+                doOnEnd {
+                    binding.btnRefresh.rotation = 0f
+                    if (settleAnimator === it) settleAnimator = null
+                }
+            }.also { it.start() }
         }
     }
 
@@ -712,5 +741,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
         /** 松开按压后保持动态采样的时长（覆盖回弹动画，之后降频）。 */
         private const val PRESS_RELEASE_KEEP_MS = 420L
+
+        /** 刷新图标转一整圈的周期。 */
+        private const val SPIN_PERIOD_MS = 900L
     }
 }
