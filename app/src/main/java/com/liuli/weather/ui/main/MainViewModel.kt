@@ -97,13 +97,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             try {
                 val started = android.os.SystemClock.elapsedRealtime()
-                val fresh = repo.getWeather(loc)
+                var failure: Exception? = null
+                val fresh = try {
+                    repo.getWeather(loc)
+                } catch (e: Exception) {
+                    failure = e
+                    null
+                }
                 if (forceRefresh) {
-                    // 网络过快时补足最短展示时长，保证旋转至少接近一整圈
-                    val remain = MIN_SPIN_MS - (android.os.SystemClock.elapsedRealtime() - started)
+                    // 按结果区分旋转时长：成功短促收住，失败多转一会儿再给出错误
+                    if (failure is kotlinx.coroutines.CancellationException) throw failure
+                    val min = if (failure == null) MIN_SPIN_SUCCESS_MS else MIN_SPIN_ERROR_MS
+                    val remain = min - (android.os.SystemClock.elapsedRealtime() - started)
                     if (remain > 0) kotlinx.coroutines.delay(remain)
                 }
-                _state.value = MainUiState.Success(fresh, fromCache = false)
+                if (failure != null) throw failure
+                _state.value = MainUiState.Success(fresh!!, fromCache = false)
             } catch (e: Exception) {
                 val noToken = !settings.hasTokenForSource(settings.effectiveSource())
                 _state.value = MainUiState.Error(humanMessage(e), cached, noToken)
@@ -130,7 +139,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         private const val STALE_MS = 30 * 60 * 1000L
 
-        /** 手动刷新时旋转指示的最短展示时长（图标转一整圈约 900ms）。 */
-        private const val MIN_SPIN_MS = 800L
+        /** 手动刷新成功时旋转的最短展示时长（短促收住）。 */
+        private const val MIN_SPIN_SUCCESS_MS = 500L
+
+        /** 手动刷新失败时旋转的最短展示时长（多转一会儿再报错）。 */
+        private const val MIN_SPIN_ERROR_MS = 2000L
     }
 }
