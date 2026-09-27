@@ -23,6 +23,7 @@ import com.example.liquidglass.LiquidGlassToast
 import com.liuli.weather.data.prefs.SettingsStore
 import com.liuli.weather.databinding.ActivitySettingsBinding
 import com.liuli.weather.ui.common.GlassPickerDialog
+import com.liuli.weather.ui.common.GlassTextTone
 import kotlin.math.hypot
 
 class SettingsActivity : AppCompatActivity() {
@@ -417,10 +418,21 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    /** 玻璃 toast。直接采样设置页内容（GPU 透镜管线，库已修成环）。深色底固定白字。 */
+    /** 玻璃 toast。直接采样设置页内容（GPU 透镜管线，库已修成环）。文字颜色按后方亮度自适应。 */
     private fun glassToast(text: CharSequence) {
+        val metrics = resources.displayMetrics
+        val toastW = dp(320).toFloat()
+        val toastH = dp(56).toFloat()
+        val left = ((metrics.widthPixels - toastW) / 2f).coerceAtLeast(0f)
+        val sysTop = window.decorView.rootWindowInsets?.getInsets(
+            androidx.core.view.WindowInsetsCompat.Type.systemBars()
+        )?.top ?: 0
+        val top = (sysTop + dp(64)).toFloat()
+        val tone = GlassTextTone.suggestTextColor(
+            window.decorView.findViewById(android.R.id.content), left, top, toastW, toastH
+        )
         val toast = LiquidGlassToast.makeText(this, text, LiquidGlassToast.LENGTH_SHORT)
-            .setTextColor(0xF2FFFFFF.toInt())
+            .setTextColor(tone)
             .setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(64))
         val contentHost = window.decorView.findViewById<ViewGroup>(android.R.id.content)
         toast.glass.backdropSource = contentHost
