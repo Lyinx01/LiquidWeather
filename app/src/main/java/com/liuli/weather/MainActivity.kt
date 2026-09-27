@@ -96,6 +96,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private val barHandler = Handler(Looper.getMainLooper())
     private var barDismissRunnable: Runnable? = null
     private var barEnterRunnable: Runnable? = null
+    private var topInsetPx = 0
     private var bottomInsetPx = 0
 
     /** 卡片低频刷新：只做 invalidate，库在背景哈希变化时才真正重采，避免逐帧全量采样。 */
@@ -133,7 +134,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     ) {
         val toast = LiquidGlassToast.makeText(this, text, duration)
             .setIconResource(if (withCheck) R.drawable.ic_check else 0)
-            .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(150))
+            .setGravity(android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(84))
         val contentHost = window.decorView.findViewById<ViewGroup>(android.R.id.content)
         toast.glass.backdropSource = contentHost
         // GPU 透镜管线（经内容快照隔离），与主页卡片同档次
@@ -193,6 +194,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private fun setupInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainRoot) { _, insets ->
             val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            topInsetPx = sys.top
             bottomInsetPx = sys.bottom
             val topLp = binding.glassTopbar.layoutParams as FrameLayout.LayoutParams
             topLp.topMargin = sys.top + dp(10)
@@ -650,7 +652,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         // ViewPropertyAnimator 上竞争（cancel 会触发 endAction）
         barEnterRunnable?.let { bar.root.removeCallbacks(it) }
         val enter = Runnable {
-            bar.root.translationY = (bar.root.height + dp(28)).toFloat()
+            bar.root.translationY = -(bar.root.height + dp(28)).toFloat()
             bar.root.alpha = 0f
             bar.root.animate()
                 .translationY(0f)
@@ -670,7 +672,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private fun ensureGlassBar(): com.liuli.weather.databinding.ViewGlassBarBinding {
         glassBar?.let { return it }
         val bar = com.liuli.weather.databinding.ViewGlassBarBinding.inflate(layoutInflater)
-        // 内容快照采样：直接采样主页内容（GPU 透镜管线，库已修成环）
+        // 内容快照采样：直接采样主页内容（GPU 透镜管线，库已修成环）；置于屏幕顶部
         bar.root.backdropSource = binding.mainRoot
         // 条身消费触摸：防止穿透到下方玻璃触发按压重录，点条身也可收起
         bar.root.isClickable = true
@@ -679,8 +681,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.WRAP_CONTENT
         ).apply {
-            gravity = android.view.Gravity.BOTTOM
-            setMargins(dp(16), 0, dp(16), bottomInsetPx + dp(92))
+            gravity = android.view.Gravity.TOP
+            setMargins(dp(16), topInsetPx + dp(74), dp(16), 0)
         }
         binding.mainRoot.addView(bar.root, lp)
         bar.root.visibility = View.GONE
@@ -699,7 +701,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         bar.tvBarAction.setOnClickListener(null)
         // 常驻视图：只做滑出动画后转 GONE，不做任何 removeView
         bar.root.animate()
-            .translationY((bar.root.height + dp(28)).toFloat())
+            .translationY(-(bar.root.height + dp(28)).toFloat())
             .alpha(0f)
             .setDuration(220L)
             .withEndAction {
