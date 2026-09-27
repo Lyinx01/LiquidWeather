@@ -18,6 +18,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import com.example.liquidglass.LiquidGlassToast
 import com.liuli.weather.data.prefs.SettingsStore
 import com.liuli.weather.databinding.ActivitySettingsBinding
 import com.liuli.weather.ui.common.GlassPickerDialog
@@ -134,7 +135,8 @@ class SettingsActivity : AppCompatActivity() {
         store.accuToken = keyDrafts[SettingsStore.SOURCE_ACCU]
         store.owToken = keyDrafts[SettingsStore.SOURCE_OPENWEATHER]
         store.qwHost = binding.etQwHost.text.toString()
-        Toast.makeText(this, R.string.token_saved, Toast.LENGTH_SHORT).show()
+        // 保存成功提示由主页在 settingsLauncher 回调里以玻璃 toast 呈现——
+        // 本页随即 finish，toast 挂在本窗口会跟着一起销毁、根本看不到
         setResult(RESULT_OK)
         finish()
     }
@@ -418,7 +420,9 @@ class SettingsActivity : AppCompatActivity() {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(this, R.string.no_browser, Toast.LENGTH_SHORT).show()
+            LiquidGlassToast.makeText(this, R.string.no_browser, LiquidGlassToast.LENGTH_SHORT)
+                .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(110))
+                .show()
         }
     }
 
