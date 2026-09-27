@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.Toast
@@ -88,6 +89,12 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private var transitionAnimator: ValueAnimator? = null
     private var currentBlurPx = 0f
 
+    // 液态玻璃错误提示条（替代 Snackbar）
+    private var glassBar: com.liuli.weather.databinding.ViewGlassBarBinding? = null
+    private val barHandler = Handler(Looper.getMainLooper())
+    private var barDismissRunnable: Runnable? = null
+    private var bottomInsetPx = 0
+
     /** 卡片低频刷新：只做 invalidate，库在背景哈希变化时才真正重采，避免逐帧全量采样。 */
     private val cardRefreshRunnable = object : Runnable {
         override fun run() {
@@ -157,6 +164,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private fun setupInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.mainRoot) { _, insets ->
             val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            bottomInsetPx = sys.bottom
             val topLp = binding.glassTopbar.layoutParams as FrameLayout.LayoutParams
             topLp.topMargin = sys.top + dp(10)
             binding.glassTopbar.layoutParams = topLp
@@ -579,10 +587,72 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         } else {
-            Snackbar.make(binding.mainRoot, st.message, Snackbar.LENGTH_LONG)
-                .setAction(R.string.action_retry) { viewModel.refresh() }
-                .show()
+            showGlassBar(st.message, getString(R.string.action_retry)) { viewModel.refresh() }
         }
+    }
+
+    // ------------------------------------------------- 液态玻璃错误提示条
+
+    /**
+     * 液态玻璃提示条：替代 Material Snackbar。
+     * 动态加入 main_root 顶层，采样主页内容做折射；从底部滑入，
+     * 停留约 3 秒后自动滑出，点击动作按钮立即收起并执行回调。
+     */
+    private fun showGlassBar(
+        message: String,
+        actionLabel: String? = null,
+        action: (() -> Unit)? = null
+    ) {
+        dismissGlassBar()
+        val bar = com.liuli.weather.databinding.ViewGlassBarBinding.inflate(layoutInflater)
+        bar.tvBarMessage.text = message
+        if (actionLabel != null && action != null) {
+            bar.tvBarAction.visibility = View.VISIBLE
+            bar.tvBarAction.text = actionLabel
+            bar.tvBarAction.setOnClickListener {
+                dismissGlassBar()
+                action()
+            }
+        } else {
+            bar.tvBarAction.visibility = View.GONE
+        }
+        bar.root.backdropSource = binding.mainRoot
+        val lp = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            gravity = android.view.Gravity.BOTTOM
+            setMargins(dp(16), 0, dp(16), bottomInsetPx + dp(92))
+        }
+        binding.mainRoot.addView(bar.root, lp)
+        glassBar = bar
+        bar.root.post {
+            bar.root.translationY = (bar.root.height + dp(28)).toFloat()
+            bar.root.alpha = 0f
+            bar.root.animate()
+                .translationY(0f)
+                .alpha(1f)
+                .setDuration(280L)
+                .setInterpolator(android.view.animation.PathInterpolator(0.32f, 0.72f, 0f, 1f))
+                .start()
+        }
+        val dismiss = Runnable { dismissGlassBar() }
+        barDismissRunnable = dismiss
+        barHandler.postDelayed(dismiss, BAR_AUTO_DISMISS_MS)
+    }
+
+    private fun dismissGlassBar() {
+        barDismissRunnable?.let { barHandler.removeCallbacks(it) }
+        barDismissRunnable = null
+        val bar = glassBar ?: return
+        glassBar = null
+        bar.tvBarAction.setOnClickListener(null)
+        bar.root.animate()
+            .translationY((bar.root.height + dp(28)).toFloat())
+            .alpha(0f)
+            .setDuration(220L)
+            .withEndAction { (bar.root.parent as? ViewGroup)?.removeView(bar.root) }
+            .start()
     }
 
     // ---------------------------------------------------------------- actions
@@ -725,6 +795,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         backgroundAnimators.clear()
         transitionAnimator?.cancel()
         SettingsActivity.revealMain = null
+        barHandler.removeCallbacksAndMessages(null)
     }
 
     companion object {
@@ -744,5 +815,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
         /** 刷新图标转一整圈的周期。 */
         private const val SPIN_PERIOD_MS = 900L
+
+        /** 玻璃提示条自动消失的停留时长。 */
+        private const val BAR_AUTO_DISMISS_MS = 3200L
     }
 }

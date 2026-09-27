@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  液态玻璃错误提示条：替代 Material Snackbar。
+  由 MainActivity 动态加入 main_root 顶层，采样主页内容做折射，
+  滑入/滑出与自动消失由代码驱动。
+-->
+<com.example.liquidglass.LiquidGlassView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/glass_bar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:aberrationIntensity="0"
+    app:bevelWidth="18dp"
+    app:blurAmount="0.6"
+    app:cornerRadius="24dp"
+    app:dispersionStrength="0"
+    app:glassMaterial="regular"
+    app:glassTint="#26E53935"
+    app:refractionHeight="16dp"
+    app:saturation="150"
+    app:sensorHighlight="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="18dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="12dp">
+
+        <ImageView
+            android:id="@+id/iv_bar_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_bar_error"
+            app:tint="#FFB4AB" />
+
+        <TextView
+            android:id="@+id/tv_bar_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:shadowColor="#40000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="3"
+            android:maxLines="3"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tv_bar_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_glass_inner"
+            android:paddingStart="14dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="6dp"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</com.example.liquidglass.LiquidGlassView>
