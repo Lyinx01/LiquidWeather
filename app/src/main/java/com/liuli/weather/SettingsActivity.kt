@@ -416,13 +416,19 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    /** 玻璃 toast。采样源固定为 settingsBackdrop（内含零玻璃），防采样成环闪退（同玻璃错误条）。 */
+    private fun glassToast(text: CharSequence) {
+        LiquidGlassToast.makeText(this, text, LiquidGlassToast.LENGTH_SHORT)
+            .also { it.glass.backdropSource = binding.settingsBackdrop }
+            .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(110))
+            .show()
+    }
+
     private fun openUrl(url: String) {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (e: ActivityNotFoundException) {
-            LiquidGlassToast.makeText(this, R.string.no_browser, LiquidGlassToast.LENGTH_SHORT)
-                .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(110))
-                .show()
+            glassToast(getString(R.string.no_browser))
         }
     }
 

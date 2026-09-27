@@ -116,11 +116,26 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         if (grants.values.any { it }) {
             requestGpsLocation()
         } else {
-            LiquidGlassToast.makeText(this, R.string.permission_denied, LiquidGlassToast.LENGTH_LONG)
-                .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(150))
-                .show()
+            glassToast(getString(R.string.permission_denied), duration = LiquidGlassToast.LENGTH_LONG)
             viewModel.ensureDefaultLocation()
         }
+    }
+
+    /**
+     * 玻璃 toast。采样源固定为纯天空层（bgContainer 内零玻璃）：采样源里含玻璃时，
+     * 交互触发的重录可能形成 RenderNode 引用成环，光栅化无限递归闪退
+     * （与玻璃错误条同款隔离，见 showGlassBar 注释）。
+     */
+    private fun glassToast(
+        text: CharSequence,
+        withCheck: Boolean = false,
+        duration: Int = LiquidGlassToast.LENGTH_SHORT
+    ) {
+        LiquidGlassToast.makeText(this, text, duration)
+            .setIconResource(if (withCheck) R.drawable.ic_check else 0)
+            .also { it.glass.backdropSource = binding.bgContainer }
+            .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(150))
+            .show()
     }
 
     private val settingsLauncher = registerForActivityResult(
@@ -129,10 +144,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         if (result.resultCode == RESULT_OK) {
             // 设置里可能改了数据源或 Key，保存后强制刷新；提示条在主页上呈现
             // （设置页保存后立即 finish，挂在它窗口里的提示会跟着销毁）
-            LiquidGlassToast.makeText(this, R.string.token_saved, LiquidGlassToast.LENGTH_SHORT)
-                .setIconResource(R.drawable.ic_check)
-                .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(150))
-                .show()
+            glassToast(getString(R.string.token_saved), withCheck = true)
             viewModel.refresh()
         } else {
             viewModel.refreshIfStale()
@@ -769,19 +781,10 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             val loc = LocationRepository.getCurrentLocation(this@MainActivity)
             setRefreshing(false)
             if (loc == null) {
-                LiquidGlassToast.makeText(this@MainActivity, R.string.locate_failed, LiquidGlassToast.LENGTH_SHORT)
-                    .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(150))
-                    .show()
+                glassToast(getString(R.string.locate_failed))
             } else {
                 viewModel.setCurrentLocation(loc)
-                LiquidGlassToast.makeText(
-                    this@MainActivity,
-                    getString(R.string.city_updated, loc.name),
-                    LiquidGlassToast.LENGTH_SHORT
-                )
-                    .setIconResource(R.drawable.ic_check)
-                    .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(150))
-                    .show()
+                glassToast(getString(R.string.city_updated, loc.name), withCheck = true)
             }
         }
     }
@@ -802,9 +805,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     override fun onDeleteSaved(index: Int) {
         viewModel.removeLocation(index)
-        LiquidGlassToast.makeText(this, R.string.city_deleted, LiquidGlassToast.LENGTH_SHORT)
-            .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(150))
-            .show()
+        glassToast(getString(R.string.city_deleted))
     }
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
