@@ -7,6 +7,7 @@ import android.graphics.Outline
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.view.animation.PathInterpolator
 import android.widget.Toast
@@ -417,16 +418,15 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    /** 玻璃 toast。采样用内容像素快照（GlassOverlayCapture）：折射真实内容且无引用成环。 */
+    /** 玻璃 toast。内容快照隔离（GlassOverlayCapture）：GPU 透镜管线、折射真实内容且无引用成环。 */
     private fun glassToast(text: CharSequence) {
         val toast = LiquidGlassToast.makeText(this, text, LiquidGlassToast.LENGTH_SHORT)
             .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(110))
-        val contentHost = window.decorView.findViewById<View>(android.R.id.content)
+        val contentHost = window.decorView.findViewById<ViewGroup>(android.R.id.content)
         GlassOverlayCapture.attach(toast.glass, contentHost)
-        // 增强 toast 玻璃质感：模糊拉满，折射/棱边向主页卡片的玻璃档次看齐
         toast.glass.apply {
-            blurAmount = 1.0f
-            refractionHeight = dp(14).toFloat()
+            blurAmount = 0.6f
+            refractionHeight = dp(16).toFloat()
             bevelWidth = dp(18).toFloat()
             edgeSoftness = dp(4).toFloat()
             saturation = 150f

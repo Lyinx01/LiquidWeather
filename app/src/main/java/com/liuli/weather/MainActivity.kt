@@ -93,8 +93,10 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     // 液态玻璃错误提示条（替代 Snackbar）
     private var glassBar: com.liuli.weather.databinding.ViewGlassBarBinding? = null
+    private var glassBarView: View? = null
     private val barHandler = Handler(Looper.getMainLooper())
     private var barDismissRunnable: Runnable? = null
+    private var barEnterRunnable: Runnable? = null
     private var bottomInsetPx = 0
 
     /** 卡片低频刷新：只做 invalidate，库在背景哈希变化时才真正重采，避免逐帧全量采样。 */
@@ -133,12 +135,12 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         val toast = LiquidGlassToast.makeText(this, text, duration)
             .setIconResource(if (withCheck) R.drawable.ic_check else 0)
             .setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, dp(150))
-        val contentHost = window.decorView.findViewById<View>(android.R.id.content)
+        val contentHost = window.decorView.findViewById<ViewGroup>(android.R.id.content)
         GlassOverlayCapture.attach(toast.glass, contentHost)
-        // 增强 toast 玻璃质感：模糊拉满，折射/棱边向主页卡片的玻璃档次看齐
+        // GPU 透镜管线（经内容快照隔离），与主页卡片同档次
         toast.glass.apply {
-            blurAmount = 1.0f
-            refractionHeight = dp(14).toFloat()
+            blurAmount = 0.6f
+            refractionHeight = dp(16).toFloat()
             bevelWidth = dp(18).toFloat()
             edgeSoftness = dp(4).toFloat()
             saturation = 150f
@@ -623,16 +625,16 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     /**
      * 液态玻璃提示条：替代 Material Snackbar。
-     * 动态加入 main_root 顶层，采样主页内容做折射；从底部滑入，
-     * 停留约 3 秒后自动滑出，点击动作按钮立即收起并执行回调。
+     * 视图**常驻复用**（首次显示时创建一次，之后只改内容与可见性）——
+     * 每次动态 inflate/remove 在 Android 17 上会触发 removeFromArray NPE；
+     * 从底部滑入，停留约 3 秒后自动滑出，点击动作按钮立即收起并执行回调。
      */
     private fun showGlassBar(
         message: String,
         actionLabel: String? = null,
         action: (() -> Unit)? = null
     ) {
-        dismissGlassBar()
-        val bar = com.liuli.weather.databinding.ViewGlassBarBinding.inflate(layoutInflater)
+        val bar = ensureGlassBar()
         bar.tvBarMessage.text = message
         if (actionLabel != null && action != null) {
             bar.tvBarAction.visibility = View.VISIBLE
@@ -644,7 +646,32 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         } else {
             bar.tvBarAction.visibility = View.GONE
         }
-        // 内容像素快照采样（GlassOverlayCapture）：折射真实内容且无引用成环
+        bar.root.visibility = View.VISIBLE
+        // 入场动画；dismiss 时会撤掉它，避免与退出动画在同一
+        // ViewPropertyAnimator 上竞争（cancel 会触发 endAction）
+        barEnterRunnable?.let { bar.root.removeCallbacks(it) }
+        val enter = Runnable {
+            bar.root.translationY = (bar.root.height + dp(28)).toFloat()
+            bar.root.alpha = 0f
+            bar.root.animate()
+                .translationY(0f)
+                .alpha(1f)
+                .setDuration(280L)
+                .setInterpolator(android.view.animation.PathInterpolator(0.32f, 0.72f, 0f, 1f))
+                .start()
+        }
+        barEnterRunnable = enter
+        bar.root.post(enter)
+        val dismiss = Runnable { dismissGlassBar() }
+        barDismissRunnable = dismiss
+        barHandler.postDelayed(dismiss, BAR_AUTO_DISMISS_MS)
+    }
+
+    /** 创建（仅一次）并常驻挂载玻璃条视图；采样用内容快照隔离（GPU 透镜管线） */
+    private fun ensureGlassBar(): com.liuli.weather.databinding.ViewGlassBarBinding {
+        glassBar?.let { return it }
+        val bar = com.liuli.weather.databinding.ViewGlassBarBinding.inflate(layoutInflater)
+        // 内容快照采样（GlassOverlayCapture）：GPU 透镜折射真实内容且无引用成环
         GlassOverlayCapture.attach(bar.root, binding.mainRoot)
         // 条身消费触摸：防止穿透到下方玻璃触发按压重录，点条身也可收起
         bar.root.isClickable = true
@@ -657,33 +684,30 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             setMargins(dp(16), 0, dp(16), bottomInsetPx + dp(92))
         }
         binding.mainRoot.addView(bar.root, lp)
+        bar.root.visibility = View.GONE
         glassBar = bar
-        bar.root.post {
-            bar.root.translationY = (bar.root.height + dp(28)).toFloat()
-            bar.root.alpha = 0f
-            bar.root.animate()
-                .translationY(0f)
-                .alpha(1f)
-                .setDuration(280L)
-                .setInterpolator(android.view.animation.PathInterpolator(0.32f, 0.72f, 0f, 1f))
-                .start()
-        }
-        val dismiss = Runnable { dismissGlassBar() }
-        barDismissRunnable = dismiss
-        barHandler.postDelayed(dismiss, BAR_AUTO_DISMISS_MS)
+        glassBarView = bar.root
+        return bar
     }
 
     private fun dismissGlassBar() {
         barDismissRunnable?.let { barHandler.removeCallbacks(it) }
         barDismissRunnable = null
+        barEnterRunnable?.let { r -> glassBarView?.removeCallbacks(r) }
+        barEnterRunnable = null
         val bar = glassBar ?: return
         glassBar = null
         bar.tvBarAction.setOnClickListener(null)
+        // 常驻视图：只做滑出动画后转 GONE，不做任何 removeView
         bar.root.animate()
             .translationY((bar.root.height + dp(28)).toFloat())
             .alpha(0f)
             .setDuration(220L)
-            .withEndAction { (bar.root.parent as? ViewGroup)?.removeView(bar.root) }
+            .withEndAction {
+                bar.root.visibility = View.GONE
+                bar.root.translationY = 0f
+                bar.root.alpha = 1f
+            }
             .start()
     }
 
