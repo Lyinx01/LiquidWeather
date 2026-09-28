@@ -654,17 +654,21 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             bar.tvBarAction.visibility = View.GONE
         }
         bar.root.visibility = View.VISIBLE
-        // 入场动画；dismiss 时会撤掉它，避免与退出动画在同一
-        // ViewPropertyAnimator 上竞争（cancel 会触发 endAction）
+        // 入场动画（iOS 浮窗弹簧：从屏幕顶部边缘外滑入 + 轻微放大过冲）；
+        // dismiss 时会撤掉它，避免与退出动画在同一 ViewPropertyAnimator 上竞争
         barEnterRunnable?.let { bar.root.removeCallbacks(it) }
         val enter = Runnable {
-            bar.root.translationY = -(bar.root.height + dp(28)).toFloat()
+            bar.root.translationY = -(bar.root.height + dp(40)).toFloat()
             bar.root.alpha = 0f
+            bar.root.scaleX = 0.92f
+            bar.root.scaleY = 0.92f
             bar.root.animate()
                 .translationY(0f)
                 .alpha(1f)
-                .setDuration(280L)
-                .setInterpolator(android.view.animation.PathInterpolator(0.32f, 0.72f, 0f, 1f))
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(460L)
+                .setInterpolator(com.example.liquidglass.IOSSpringInterpolator(0.46f, 0.82f))
                 .start()
         }
         barEnterRunnable = enter
@@ -705,15 +709,20 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         val bar = glassBar ?: return
         glassBar = null
         bar.tvBarAction.setOnClickListener(null)
-        // 常驻视图：只做滑出动画后转 GONE，不做任何 removeView
+        // 常驻视图：滑出动画后转 GONE（iOS 式干脆收走：上滑 + 轻微缩小 + 加速）
         bar.root.animate()
-            .translationY(-(bar.root.height + dp(28)).toFloat())
+            .translationY(-(bar.root.height + dp(40)).toFloat())
             .alpha(0f)
-            .setDuration(220L)
+            .scaleX(0.94f)
+            .scaleY(0.94f)
+            .setDuration(180L)
+            .setInterpolator(android.view.animation.AccelerateInterpolator(1.8f))
             .withEndAction {
                 bar.root.visibility = View.GONE
                 bar.root.translationY = 0f
                 bar.root.alpha = 1f
+                bar.root.scaleX = 1f
+                bar.root.scaleY = 1f
             }
             .start()
     }

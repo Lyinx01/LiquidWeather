@@ -273,12 +273,13 @@ class LiquidGlassToast private constructor(private val activity: Activity) {
         }
         if (dismissing) return
         dismissing = true
+        // 退场：更短、更快收走——与 iOS 横幅「消失干脆」的手感一致
         glass.animate()
             .alpha(0f)
             .scaleX(EXIT_SCALE)
             .scaleY(EXIT_SCALE)
             .setDuration(EXIT_MS)
-            .setInterpolator(AccelerateInterpolator(1.2f))
+            .setInterpolator(AccelerateInterpolator(1.8f))
             .setUpdateListener { glass.invalidate() }
             .withEndAction { removeWindow() }
             .start()
@@ -441,12 +442,16 @@ class LiquidGlassToast private constructor(private val activity: Activity) {
     }
 
     private fun animateIn() {
-        // 从所在的那条边滑进来一点：底部向上、顶部向下、居中向上
-        val slide = when (gravity and Gravity.VERTICAL_GRAVITY_MASK) {
-            Gravity.TOP -> -dpF(SLIDE_DP.toFloat())
+        // 从所在的那条边滑进来：底部向上、顶部向下、居中向上。顶部横幅
+        // （iOS 通知样式）滑入距离加大，从屏幕边缘外滑入的观感更完整
+        val isTop = (gravity and Gravity.VERTICAL_GRAVITY_MASK) == Gravity.TOP
+        val slide = when {
+            isTop -> -dpF((SLIDE_DP * 2.4f))
+            (gravity and Gravity.VERTICAL_GRAVITY_MASK) == Gravity.BOTTOM -> dpF(SLIDE_DP.toFloat())
             else -> dpF(SLIDE_DP.toFloat())
         }
         glass.alpha = 0f
+        // 入场缩放：iOS 横幅从略小放大到原尺寸，配合弹簧的轻微过冲
         glass.scaleX = ENTER_SCALE
         glass.scaleY = ENTER_SCALE
         glass.translationY = slide
@@ -456,7 +461,8 @@ class LiquidGlassToast private constructor(private val activity: Activity) {
             .scaleY(1f)
             .translationY(0f)
             .setDuration(ENTER_MS)
-            .setInterpolator(DecelerateInterpolator(1.6f))
+            // iOS 浮窗弹簧：低刚度高阻尼，收尾带极轻微过冲
+            .setInterpolator(IOSSpringInterpolator(0.46f, 0.82f))
             // 位移中每帧重录：玻璃按屏幕坐标采背景，不重绘的话折射会拖着走
             .setUpdateListener { glass.invalidate() }
             .withEndAction(null)
@@ -502,9 +508,10 @@ class LiquidGlassToast private constructor(private val activity: Activity) {
         private const val TAG = "LiquidGlassToast"
         private const val SHORT_MS = 2000L
         private const val LONG_MS = 3500L
-        private const val ENTER_MS = 260L
+        // iOS 浮窗节奏：入场约 0.46s 弹簧，退场 0.18s 快速收走
+        private const val ENTER_MS = 460L
         private const val EXIT_MS = 180L
-        private const val ENTER_SCALE = 0.94f
+        private const val ENTER_SCALE = 0.92f
         private const val EXIT_SCALE = 0.94f
 
         /** 滑入距离（dp），也是 window 在玻璃上下多留的余量 */
