@@ -399,6 +399,7 @@ class MainActivity : AppCompatActivity() {
         binding.tvTempRange.text = ""
         binding.tvUpdated.text = ""
         setCardsVisible(false)
+        adaptCityTitleTone()
         viewModel.reloadFromSettings()
     }
 
@@ -428,6 +429,20 @@ class MainActivity : AppCompatActivity() {
         com.liuli.weather.ui.common.GlassPressEffect.attach(
             binding.glassBtnSettings, { onGlassPressed(it) }, binding.btnSettings
         )
+
+        // 城市名颜色跟随胶囊表面亮度自适应（与 toast 同一套判定）。
+        // 胶囊宽度随城市名长短变化 → 采样区域也跟着变，所以监听尺寸变化重测；
+        // 天气造成的底色变化由 render() 里再调一次覆盖。
+        binding.glassTopbar.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
+            if (r - l != or - ol || b - t != ob - ot) adaptCityTitleTone()
+        }
+    }
+
+    /** 城市名颜色按胶囊表面亮度自适应（与 toast 同一套阈值与滞回）。 */
+    private fun adaptCityTitleTone() {
+        binding.glassTopbar.post {
+            GlassTextTone.adaptTextColorToSurface(binding.glassTopbar, binding.tvTitle)
+        }
     }
 
     /**
@@ -511,6 +526,8 @@ class MainActivity : AppCompatActivity() {
             w.daily.firstOrNull()?.sunset
         )
         binding.tvTitle.text = w.location.name
+        // 天气变了 → 胶囊背后底色也变了，重测一次文字颜色
+        adaptCityTitleTone()
         binding.tvTemp.text = "${UnitConverter.displayInt(w.current.temperature, imperial)}°"
         binding.tvCondition.text = w.current.skyconName
         val today = w.daily.firstOrNull()
