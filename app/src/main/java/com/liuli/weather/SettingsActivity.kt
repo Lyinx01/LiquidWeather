@@ -84,9 +84,13 @@ class SettingsActivity : AppCompatActivity() {
         keyDrafts[SettingsStore.SOURCE_OPENWEATHER] = store.owToken ?: ""
         binding.etQwHost.setText(store.qwHost ?: "")
 
+        binding.cityRow.setOnClickListener {
+            com.liuli.weather.ui.city.CityPickerSheet.show(supportFragmentManager)
+        }
         binding.sourceRow.setOnClickListener { showSourcePicker() }
         binding.unitsRow.setOnClickListener { showUnitsPicker() }
         binding.languageRow.setOnClickListener { showLanguagePicker() }
+        refreshCityLabel()
         refreshSourceLabel()
         refreshUnitsLabel()
         refreshLanguageLabel()
@@ -96,6 +100,9 @@ class SettingsActivity : AppCompatActivity() {
         // 玻璃卡片嵌在 ScrollView 内，需显式指定采样源为根布局（含渐变装饰背景），
         // 否则默认只捕获透明的直接父容器，看不到折射。
         setupGlassCards()
+
+        // 城市管理面板在这里也可能被改动，变更后同步本页展示
+        com.liuli.weather.ui.city.CityPickerSheet.addCityChangedListener(cityChangedListener)
 
         com.liuli.weather.ui.common.GlassPressEffect.attach(
             binding.glassSave, null, binding.btnSave
@@ -279,6 +286,15 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        // 城市管理面板的订阅是进程级的，必须显式退订，否则本页会被一直持有
+        com.liuli.weather.ui.city.CityPickerSheet.removeCityChangedListener(cityChangedListener)
+    }
+
+    /** 面板里改了城市后同步本页那行显示。 */
+    private val cityChangedListener: () -> Unit = { refreshCityLabel() }
+
     // ---------------------------------------------------------------- pickers
 
     private fun showSourcePicker() {
@@ -363,6 +379,12 @@ class SettingsActivity : AppCompatActivity() {
         }
         return if (store.hasTokenForSource(source)) name
         else getString(R.string.source_not_configured, name)
+    }
+
+    /** 城市行：显示当前城市名（没有城市时给出提示，引导用户去添加）。 */
+    private fun refreshCityLabel() {
+        val loc = store.currentLocation()
+        binding.tvCityValue.text = loc?.name ?: getString(R.string.settings_city_empty)
     }
 
     private fun refreshSourceLabel() {

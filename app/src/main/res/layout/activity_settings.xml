@@ -53,11 +53,80 @@
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
-            <!-- ============ 数据源 ============ -->
+            <!-- ============ 城市管理入口 ============ -->
             <com.example.liquidglass.LiquidGlassView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
+                app:bevelWidth="30dp"
+                app:blurAmount="0.6"
+                app:cornerRadius="26dp"
+                app:dispersionStrength="0"
+                app:aberrationIntensity="0"
+                app:glassMaterial="regular"
+                app:refractionHeight="24dp"
+                app:saturation="150"
+                app:sensorHighlight="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.85"
+                        android:shadowColor="#33000000"
+                        android:shadowDx="0"
+                        android:shadowDy="1"
+                        android:shadowRadius="2"
+                        android:text="@string/settings_city_label"
+                        android:textColor="@color/white"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/city_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_glass_inner"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp">
+
+                        <TextView
+                            android:id="@+id/tv_city_value"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:shadowColor="#33000000"
+                            android:shadowDx="0"
+                            android:shadowDy="1"
+                            android:shadowRadius="2"
+                            android:singleLine="true"
+                            android:textColor="@color/white"
+                            android:textSize="15sp" />
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginStart="8dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="#B3FFFFFF" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.example.liquidglass.LiquidGlassView>
+
+            <!-- ============ 数据源 ============ -->
+            <com.example.liquidglass.LiquidGlassView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
                 app:bevelWidth="30dp"
                 app:blurAmount="0.6"
                 app:cornerRadius="26dp"

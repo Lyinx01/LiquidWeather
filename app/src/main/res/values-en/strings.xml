@@ -129,6 +129,8 @@
     <string name="detail_sunset">Sunset</string>
 
     <!-- Settings -->
+    <string name="settings_city_label">Manage cities</string>
+    <string name="settings_city_empty">No city selected</string>
     <string name="settings_source_label">Weather source</string>
     <string name="source_caiyun">Caiyun Weather (China &amp; Asia-Pacific)</string>
     <string name="source_qweather">QWeather (China)</string>

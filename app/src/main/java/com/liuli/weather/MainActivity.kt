@@ -31,7 +31,6 @@ import com.example.liquidglass.LiquidGlassToast
 import com.example.liquidglass.LiquidGlassView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.liuli.weather.data.city.City
 import com.liuli.weather.data.location.LocationRepository
 import com.liuli.weather.data.model.AqiInfo
 import com.liuli.weather.data.model.DetailItem
@@ -55,7 +54,7 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.roundToInt
 
-class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
@@ -177,6 +176,8 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         setupTransitionScrim()
         // 设置页收起动画开始时回调，主页同步解除模糊（进程内跨 Activity 通知）
         SettingsActivity.revealMain = { revealMainFromTransition() }
+        // 城市管理面板可在任意界面调出，变更后主页按新城市重载
+        CityPickerSheet.addCityChangedListener(cityChangedListener)
 
         setupInsets()
         setupGlass()
@@ -362,17 +363,6 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        // 冻结背景动画并关闭所有动态采样，避免后台耗电
-        backgroundAnimating = false
-        binding.skyBg.pause()
-        binding.weatherEffects.pause()
-        glassIdleHandler.removeCallbacks(cardRefreshRunnable)
-        floatingGlasses.forEach { it.enableDynamicBackground = false }
-        cardGlasses.forEach { it.enableDynamicBackground = false }
-    }
-
     override fun onResume() {
         super.onResume()
         backgroundAnimating = true
@@ -383,6 +373,33 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         if (currentBlurPx > 0f) {
             revealMainFromTransition()
         }
+    }
+
+    /**
+     * 城市管理的变更回调。
+     *
+     * 订阅覆盖整个 Activity 生命周期（而不是 onResume/onPause）：面板常常是在设置页
+     * 之上被调出的，此时主页处于 paused 状态，若按前后台订阅就会漏掉这次变更。
+     */
+    private val cityChangedListener: () -> Unit = { onCityChangedExternally() }
+
+    /**
+     * 城市被外部改掉（城市管理面板）时立即反映到界面。
+     *
+     * 必须**先同步改标题并清掉旧城市的数据**，再发起加载：新城市可能没有缓存、网络又失败，
+     * 那样 load() 会直接落到 Error 分支而从不 render()，标题就会一直停在旧城市名上——
+     * 用户看到的是「切了城市却毫无变化」，会以为功能坏了。
+     */
+    private fun onCityChangedExternally() {
+        val loc = settings.currentLocation()
+        binding.tvTitle.text = loc?.name.orEmpty()
+        // 旧城市的数值/卡片属于上一个城市，先清掉，避免与新标题张冠李戴
+        binding.tvTemp.text = ""
+        binding.tvCondition.text = ""
+        binding.tvTempRange.text = ""
+        binding.tvUpdated.text = ""
+        setCardsVisible(false)
+        viewModel.reloadFromSettings()
     }
 
     private fun setupTopBar() {
@@ -456,6 +473,9 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private fun observe() {
         viewModel.state.observe(this) { st ->
             setRefreshing(st is MainUiState.Loading)
+            // 标题始终跟随「已保存的当前城市」，不依赖是否拿到了天气数据：
+            // 新城市无缓存且请求失败时 render() 不会被调用，只靠 render 赋值会让标题空着
+            binding.tvTitle.text = settings?.currentLocation()?.name.orEmpty()
             when (st) {
                 is MainUiState.Idle -> showIdle()
                 is MainUiState.Loading -> Unit
@@ -865,25 +885,6 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         }
     }
 
-    // ------------------------------------------------- CityPickerSheet.Callback
-
-    override fun onSelectSaved(index: Int) {
-        viewModel.selectLocation(index)
-    }
-
-    override fun onPickCity(city: City) {
-        viewModel.setCurrentLocation(LocationInfo(city.name, city.lat, city.lng))
-    }
-
-    override fun onGpsRequested() {
-        requestGpsLocation()
-    }
-
-    override fun onDeleteSaved(index: Int) {
-        viewModel.removeLocation(index)
-        glassToast(getString(R.string.city_deleted))
-    }
-
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
     override fun onDestroy() {
@@ -892,6 +893,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         binding.skyBg.pause()
         transitionAnimator?.cancel()
         SettingsActivity.revealMain = null
+        CityPickerSheet.removeCityChangedListener(cityChangedListener)
         barHandler.removeCallbacksAndMessages(null)
     }
 

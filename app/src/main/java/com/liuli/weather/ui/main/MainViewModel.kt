@@ -49,6 +49,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (stale) load(forceRefresh = true)
     }
 
+    /**
+     * 城市在外部被改动（城市管理面板可在任意界面调出）后重新载入。
+     * 强制刷新并同步城市列表，保证主页标题、逐小时等随之更新。
+     */
+    fun reloadFromSettings() {
+        _locations.value = settings.locations()
+        if (settings.currentLocation() == null) {
+            _state.value = MainUiState.Idle
+            return
+        }
+        load(forceRefresh = true)
+    }
+
     fun setCurrentLocation(loc: LocationInfo) {
         settings.addOrSelectLocation(loc)
         _locations.value = settings.locations()

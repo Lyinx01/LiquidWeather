@@ -131,6 +131,8 @@
     <string name="detail_sunset">日落</string>
 
     <!-- 设置页 -->
+    <string name="settings_city_label">城市管理</string>
+    <string name="settings_city_empty">未选择城市</string>
     <string name="settings_source_label">数据源</string>
     <string name="source_caiyun">彩云天气（中国及亚太）</string>
     <string name="source_qweather">和风天气（中国）</string>
