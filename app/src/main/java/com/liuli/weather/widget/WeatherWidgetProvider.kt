@@ -130,7 +130,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 if (today != null) "${UnitConverter.displayInt(today.tempMin, imperial)}°" else context.getString(R.string.widget_temp_placeholder)
             )
 
-            // 逐小时预览：未来 6 个时段，其中与日落/日出同小时的位置替换为时刻标记
+            // 逐小时预览：未来 6 个时段，带降水概率，其中与日落/日出同小时的位置替换为时刻标记
             val now = System.currentTimeMillis()
             val upcoming = weather.hourly.filter { it.time >= now - 30 * 60 * 1000L }.take(6)
             val hourIds = intArrayOf(
@@ -144,10 +144,15 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 R.id.hour_1_icon, R.id.hour_2_icon, R.id.hour_3_icon,
                 R.id.hour_4_icon, R.id.hour_5_icon, R.id.hour_6_icon
             )
+            val probIds = intArrayOf(
+                R.id.hour_1_prob, R.id.hour_2_prob, R.id.hour_3_prob,
+                R.id.hour_4_prob, R.id.hour_5_prob, R.id.hour_6_prob
+            )
             val tempIds = intArrayOf(
                 R.id.hour_1_temp, R.id.hour_2_temp, R.id.hour_3_temp,
                 R.id.hour_4_temp, R.id.hour_5_temp, R.id.hour_6_temp
             )
+            val nowHour = System.currentTimeMillis() / 3_600_000L
             hourIds.forEachIndexed { i, containerId ->
                 val hour = upcoming.getOrNull(i)
                 if (hour == null) {
@@ -158,12 +163,24 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     val event = sunriseSunsetFor(hour.time, today)
                     views.setTextViewText(
                         timeIds[i],
-                        event?.first ?: TimeUtils.hourLabel(hour.time)
+                        event?.first ?: if (hour.time / 3_600_000L == nowHour) {
+                            context.getString(R.string.time_now)
+                        } else {
+                            TimeUtils.hourLabel(hour.time)
+                        }
                     )
                     views.setImageViewResource(
                         iconIds[i],
                         event?.second ?: WeatherCodeMapper.iconFor(hour.skycon)
                     )
+                    // 降水概率：>=20% 才显示（与主界面逐小时列表规则一致）
+                    val prob = hour.precipProbability
+                    if (prob != null && prob >= 20) {
+                        views.setViewVisibility(probIds[i], android.view.View.VISIBLE)
+                        views.setTextViewText(probIds[i], "$prob%")
+                    } else {
+                        views.setViewVisibility(probIds[i], android.view.View.INVISIBLE)
+                    }
                     views.setTextViewText(
                         tempIds[i],
                         "${UnitConverter.displayInt(hour.temperature, imperial)}°"

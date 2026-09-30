@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 天气状况胶囊：半透明白底 + 细描边，用于把「图标 + 状况文案」收成一枚 chip -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#26FFFFFF" />
+    <corners android:radius="999dp" />
+    <stroke
+        android:width="0.8dp"
+        android:color="#33FFFFFF" />
+</shape>

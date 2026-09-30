@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  小部件布局（iOS 风格）。
-  所有文本均启用框架级自适应字号（autoSizeTextType=uniform）：
-  不同桌面网格（如 ColorOS 4x6）给出的部件高度差异很大，
-  固定字号会被纵向裁切，自适应字号会按可用空间自动缩小。
+  小部件布局（现代 · iOS 风格）。
+  设计要点：
+  - 主次分层：超大温度是唯一视觉主角，城市/状况/高低温都退为次要信息
+  - 状况收成胶囊 chip（图标 + 文案同框），比裸文字更精致
+  - 逐小时带降水概率，信息密度更高但靠字号/透明度建立层级
+  - 全部文本启用框架级自适应字号：不同桌面网格（如 ColorOS 4x6）高度差异大，
+    固定字号会被纵向裁切
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg_sunny"
-    android:paddingStart="16dp"
-    android:paddingTop="12dp"
-    android:paddingEnd="16dp"
-    android:paddingBottom="8dp">
+    android:paddingStart="18dp"
+    android:paddingTop="14dp"
+    android:paddingEnd="18dp"
+    android:paddingBottom="12dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- 第一行：城市名 + 定位箭头 ······ 天气图标 -->
+        <!-- 第一行：城市（次要）· ····· 状况胶囊（图标 + 文案） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -38,13 +41,14 @@
                     android:id="@+id/widget_city"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:autoSizeMaxTextSize="19sp"
-                    android:autoSizeMinTextSize="11sp"
+                    android:autoSizeMaxTextSize="15sp"
+                    android:autoSizeMinTextSize="10sp"
                     android:autoSizeStepGranularity="1sp"
                     android:autoSizeTextType="uniform"
+                    android:alpha="0.92"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:shadowColor="#40000000"
+                    android:shadowColor="#33000000"
                     android:shadowDx="0"
                     android:shadowDy="1"
                     android:shadowRadius="3"
@@ -54,24 +58,51 @@
 
                 <ImageView
                     android:id="@+id/widget_location_arrow"
-                    android:layout_width="11dp"
-                    android:layout_height="11dp"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
                     android:layout_marginStart="4dp"
+                    android:alpha="0.9"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_location_arrow"
                     android:visibility="gone" />
             </LinearLayout>
 
-            <ImageView
-                android:id="@+id/widget_icon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="6dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_w_sunny" />
+            <!-- 状况 chip：图标 + 文案收成一枚胶囊，替代原先散落的图标/文字 -->
+            <LinearLayout
+                android:id="@+id/widget_chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/widget_chip_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="9dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="11dp"
+                android:paddingBottom="4dp">
+
+                <ImageView
+                    android:id="@+id/widget_icon"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_w_sunny" />
+
+                <TextView
+                    android:id="@+id/widget_condition"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:autoSizeMaxTextSize="12sp"
+                    android:autoSizeMinTextSize="8sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="#FFFFFFFF" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- 第二行：大温度 ······ 天气状况 + 最高/最低 -->
+        <!-- 第二行：超大温度（主角） + 右侧最高/最低 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -79,55 +110,45 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- 自适应字号：部件高度较小时（如 ColorOS 4x6 网格）自动缩小，避免裁切 -->
             <TextView
                 android:id="@+id/widget_temp"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:autoSizeMaxTextSize="50sp"
-                android:autoSizeMinTextSize="18sp"
+                android:autoSizeMaxTextSize="56sp"
+                android:autoSizeMinTextSize="20sp"
                 android:autoSizeStepGranularity="2sp"
                 android:autoSizeTextType="uniform"
                 android:fontFamily="sans-serif-light"
                 android:gravity="center_vertical"
-                android:shadowColor="#40000000"
+                android:includeFontPadding="false"
+                android:shadowColor="#3D000000"
                 android:shadowDx="0"
                 android:shadowDy="1"
-                android:shadowRadius="4"
+                android:shadowRadius="5"
                 android:textColor="#FFFFFFFF" />
 
-            <TextView android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
+            <!-- 高/低温：右对齐的两行，标签与数值分列（更易扫读） -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/widget_condition"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:autoSizeMaxTextSize="14sp"
-                    android:autoSizeMinTextSize="9sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
-                    android:alpha="0.92"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="#FFFFFFFF" />
-
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:alpha="0.7"
+                        android:alpha="0.62"
                         android:text="@string/widget_high_label"
                         android:textColor="#FFFFFFFF"
                         android:textSize="10sp" />
@@ -136,18 +157,25 @@
                         android:id="@+id/widget_high"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:autoSizeMaxTextSize="16sp"
-                        android:autoSizeMinTextSize="10sp"
+                        android:layout_marginStart="6dp"
+                        android:autoSizeMaxTextSize="17sp"
+                        android:autoSizeMinTextSize="11sp"
                         android:autoSizeStepGranularity="1sp"
                         android:autoSizeTextType="uniform"
                         android:textColor="#FFFFFFFF" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="7dp"
-                        android:alpha="0.7"
+                        android:alpha="0.62"
                         android:text="@string/widget_low_label"
                         android:textColor="#FFFFFFFF"
                         android:textSize="10sp" />
@@ -156,9 +184,9 @@
                         android:id="@+id/widget_low"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:autoSizeMaxTextSize="16sp"
-                        android:autoSizeMinTextSize="10sp"
+                        android:layout_marginStart="6dp"
+                        android:autoSizeMaxTextSize="17sp"
+                        android:autoSizeMinTextSize="11sp"
                         android:autoSizeStepGranularity="1sp"
                         android:autoSizeTextType="uniform"
                         android:textColor="#FFFFFFFF" />
@@ -166,11 +194,18 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 第三行：逐小时（6 列，含日出/日落时刻） -->
+        <!-- 分隔细线：把「此刻」与「未来」在视觉上分开 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="6dp"
+            android:background="#26FFFFFF" />
+
+        <!-- 第三行：逐小时（6 列，含降水概率与日出/日落时刻） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -185,27 +220,41 @@
                     android:id="@+id/hour_1_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:alpha="0.82"
                     android:autoSizeMaxTextSize="11sp"
                     android:autoSizeMinTextSize="7sp"
                     android:autoSizeStepGranularity="1sp"
                     android:autoSizeTextType="uniform"
                     android:maxLines="1"
-                    android:textColor="#FFFFFFFF" />
+                    android:textColor="#FFFFFFFF"
+                    android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_1_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="5dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
+
+                <!-- 降水概率：无降水时隐藏 -->
+                <TextView
+                    android:id="@+id/hour_1_prob"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:autoSizeMaxTextSize="9sp"
+                    android:autoSizeMinTextSize="6sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:maxLines="1"
+                    android:textColor="#9FD8FF"
+                    android:visibility="invisible" />
 
                 <TextView
                     android:id="@+id/hour_1_temp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="1dp"
                     android:autoSizeMaxTextSize="14sp"
                     android:autoSizeMinTextSize="9sp"
                     android:autoSizeStepGranularity="1sp"
@@ -225,27 +274,40 @@
                     android:id="@+id/hour_2_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:alpha="0.82"
                     android:autoSizeMaxTextSize="11sp"
                     android:autoSizeMinTextSize="7sp"
                     android:autoSizeStepGranularity="1sp"
                     android:autoSizeTextType="uniform"
                     android:maxLines="1"
-                    android:textColor="#FFFFFFFF" />
+                    android:textColor="#FFFFFFFF"
+                    android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_2_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="5dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
+
+                <TextView
+                    android:id="@+id/hour_2_prob"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:autoSizeMaxTextSize="9sp"
+                    android:autoSizeMinTextSize="6sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:maxLines="1"
+                    android:textColor="#9FD8FF"
+                    android:visibility="invisible" />
 
                 <TextView
                     android:id="@+id/hour_2_temp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="1dp"
                     android:autoSizeMaxTextSize="14sp"
                     android:autoSizeMinTextSize="9sp"
                     android:autoSizeStepGranularity="1sp"
@@ -265,27 +327,40 @@
                     android:id="@+id/hour_3_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:alpha="0.82"
                     android:autoSizeMaxTextSize="11sp"
                     android:autoSizeMinTextSize="7sp"
                     android:autoSizeStepGranularity="1sp"
                     android:autoSizeTextType="uniform"
                     android:maxLines="1"
-                    android:textColor="#FFFFFFFF" />
+                    android:textColor="#FFFFFFFF"
+                    android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_3_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="5dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
+
+                <TextView
+                    android:id="@+id/hour_3_prob"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:autoSizeMaxTextSize="9sp"
+                    android:autoSizeMinTextSize="6sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:maxLines="1"
+                    android:textColor="#9FD8FF"
+                    android:visibility="invisible" />
 
                 <TextView
                     android:id="@+id/hour_3_temp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="1dp"
                     android:autoSizeMaxTextSize="14sp"
                     android:autoSizeMinTextSize="9sp"
                     android:autoSizeStepGranularity="1sp"
@@ -305,27 +380,40 @@
                     android:id="@+id/hour_4_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:alpha="0.82"
                     android:autoSizeMaxTextSize="11sp"
                     android:autoSizeMinTextSize="7sp"
                     android:autoSizeStepGranularity="1sp"
                     android:autoSizeTextType="uniform"
                     android:maxLines="1"
-                    android:textColor="#FFFFFFFF" />
+                    android:textColor="#FFFFFFFF"
+                    android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_4_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="5dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
+
+                <TextView
+                    android:id="@+id/hour_4_prob"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:autoSizeMaxTextSize="9sp"
+                    android:autoSizeMinTextSize="6sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:maxLines="1"
+                    android:textColor="#9FD8FF"
+                    android:visibility="invisible" />
 
                 <TextView
                     android:id="@+id/hour_4_temp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="1dp"
                     android:autoSizeMaxTextSize="14sp"
                     android:autoSizeMinTextSize="9sp"
                     android:autoSizeStepGranularity="1sp"
@@ -345,27 +433,40 @@
                     android:id="@+id/hour_5_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:alpha="0.82"
                     android:autoSizeMaxTextSize="11sp"
                     android:autoSizeMinTextSize="7sp"
                     android:autoSizeStepGranularity="1sp"
                     android:autoSizeTextType="uniform"
                     android:maxLines="1"
-                    android:textColor="#FFFFFFFF" />
+                    android:textColor="#FFFFFFFF"
+                    android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_5_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="5dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
+
+                <TextView
+                    android:id="@+id/hour_5_prob"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:autoSizeMaxTextSize="9sp"
+                    android:autoSizeMinTextSize="6sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:maxLines="1"
+                    android:textColor="#9FD8FF"
+                    android:visibility="invisible" />
 
                 <TextView
                     android:id="@+id/hour_5_temp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="1dp"
                     android:autoSizeMaxTextSize="14sp"
                     android:autoSizeMinTextSize="9sp"
                     android:autoSizeStepGranularity="1sp"
@@ -385,27 +486,40 @@
                     android:id="@+id/hour_6_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:alpha="0.82"
                     android:autoSizeMaxTextSize="11sp"
                     android:autoSizeMinTextSize="7sp"
                     android:autoSizeStepGranularity="1sp"
                     android:autoSizeTextType="uniform"
                     android:maxLines="1"
-                    android:textColor="#FFFFFFFF" />
+                    android:textColor="#FFFFFFFF"
+                    android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_6_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="5dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
+
+                <TextView
+                    android:id="@+id/hour_6_prob"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:autoSizeMaxTextSize="9sp"
+                    android:autoSizeMinTextSize="6sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:maxLines="1"
+                    android:textColor="#9FD8FF"
+                    android:visibility="invisible" />
 
                 <TextView
                     android:id="@+id/hour_6_temp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="1dp"
                     android:autoSizeMaxTextSize="14sp"
                     android:autoSizeMinTextSize="9sp"
                     android:autoSizeStepGranularity="1sp"
