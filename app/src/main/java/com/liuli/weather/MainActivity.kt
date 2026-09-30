@@ -413,9 +413,11 @@ class MainActivity : AppCompatActivity() {
         binding.glassTopbar.setOnClickListener {
             CityPickerSheet.show(supportFragmentManager)
         }
-        // 关掉库内置的按压缩放：它与下面 GlassPressEffect 的缩放会互相覆盖，
-        // 表现为按下去只放大一点点或跳变。统一交给 GlassPressEffect 处理。
-        binding.glassTopbar.enablePressEffect = false
+        // 三块悬浮玻璃的按压缩放统一交给 GlassPressEffect（放大到 1.3 的 iOS 手感）。
+        // 必须关掉库内置的按压缩放：它按下是缩到 0.95，两套动画同时写同一个
+        // scaleX/scaleY，互相覆盖，观感就是「放大后又莫名缩回」。
+        listOf(binding.glassTopbar, binding.glassBtnRefresh, binding.glassBtnSettings)
+            .forEach { it.enablePressEffect = false }
 
         com.liuli.weather.ui.common.GlassPressEffect.attach(
             binding.glassTopbar, { onGlassPressed(it) }, binding.glassTopbar

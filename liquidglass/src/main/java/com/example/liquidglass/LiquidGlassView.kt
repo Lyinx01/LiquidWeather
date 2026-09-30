@@ -2124,9 +2124,26 @@ open class LiquidGlassView @JvmOverloads constructor(
                 isPressed = false
                 touchOffsetX = 0f
                 touchOffsetY = 0f
-                // 无条件归位：即使按住期间效果被关闭，也不能卡在缩放状态
-                animateScale(false)
-                animatePress(false)
+                if (enablePressEffect) {
+                    animateScale(false)
+                    animatePress(false)
+                } else {
+                    // 内置按压效果被关闭时**绝不能**再动 scale：该标志表示「缩放交给外部」，
+                    // 而 animateScale 的动画器每帧都会调用 applyGlassScale() 硬写
+                    // scaleX/scaleY（见 applyGlassScale），会把外部正在跑的缩放动画
+                    // 逐帧覆盖掉，表现成回弹动画跳到一半就没了。
+                    // 这里只做一次无动画的兜底归位，防止按住期间效果被关掉而卡住形变。
+                    if (basePressScale != 1f || stretchScaleX != 1f || stretchScaleY != 1f) {
+                        basePressScale = 1f
+                        stretchScaleX = 1f
+                        stretchScaleY = 1f
+                        applyGlassScale()
+                    }
+                    if (pressDepth != 0f) {
+                        pressDepth = 0f
+                        invalidate()
+                    }
+                }
                 // 事件被这里消费了，不自己派发的话 OnClickListener 永远不会触发；
                 // 手指移出视图后抬起视为取消，与标准 Button 行为一致
                 if (event.action == MotionEvent.ACTION_UP && isClickable &&
