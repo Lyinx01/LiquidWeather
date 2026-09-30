@@ -53,8 +53,6 @@ object WeatherCodeMapper {
         else -> R.drawable.ic_w_cloudy
     }
 
-    fun isNight(skycon: String?): Boolean = skycon?.endsWith("_NIGHT") == true
-
     private val WIND_RES = intArrayOf(
         R.string.wind_n, R.string.wind_ne, R.string.wind_e, R.string.wind_se,
         R.string.wind_s, R.string.wind_sw, R.string.wind_w, R.string.wind_nw
@@ -68,17 +66,6 @@ object WeatherCodeMapper {
         val normalized = ((degValue % 360) + 360) % 360
         val idx = ((normalized + 22.5) / 45).toInt() % 8
         return AppCtx.str(WIND_RES[idx])
-    }
-
-    /** 整屏天空背景（需要给 Liquid Glass 提供折射细节）。 */
-    fun backgroundFor(skycon: String?): Int = when {
-        skycon == "CLEAR_DAY" -> R.drawable.bg_sky_sunny
-        skycon == "CLEAR_NIGHT" || skycon == "PARTLY_CLOUDY_NIGHT" -> R.drawable.bg_sky_night
-        skycon == null -> R.drawable.bg_sky_cloudy
-        skycon.contains("RAIN") || skycon == "THUNDER_SHOWER" -> R.drawable.bg_sky_rain
-        skycon.contains("SNOW") -> R.drawable.bg_sky_snow
-        skycon.contains("HAZE") || skycon == "FOG" || skycon == "DUST" || skycon == "SAND" -> R.drawable.bg_sky_fog
-        else -> R.drawable.bg_sky_cloudy
     }
 
     /** AQI 数值对应的本地化描述与颜色。 */

@@ -5,67 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 天空背景层：给 Liquid Glass 提供折射细节（云层缓慢飘移，玻璃实时折射） -->
+    <!-- 天空背景层：给 Liquid Glass 提供折射细节（程序化逐帧绘制，会缓慢流动） -->
     <FrameLayout
         android:id="@+id/bg_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <View
-            android:id="@+id/bg_sky"
+        <com.liuli.weather.ui.main.SkyBackgroundView
+            android:id="@+id/sky_bg"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/bg_sky_sunny" />
-
-        <ImageView
-            android:id="@+id/cloud1"
-            android:layout_width="460dp"
-            android:layout_height="200dp"
-            android:layout_marginTop="70dp"
-            android:alpha="0.5"
-            android:scaleType="fitXY"
-            android:src="@drawable/cloud_soft" />
-
-        <ImageView
-            android:id="@+id/cloud2"
-            android:layout_width="560dp"
-            android:layout_height="240dp"
-            android:layout_marginTop="300dp"
-            android:alpha="0.35"
-            android:scaleType="fitXY"
-            android:src="@drawable/cloud_soft" />
-
-        <ImageView
-            android:id="@+id/cloud3"
-            android:layout_width="380dp"
-            android:layout_height="170dp"
-            android:layout_marginTop="560dp"
-            android:alpha="0.4"
-            android:scaleType="fitXY"
-            android:src="@drawable/cloud_soft" />
-
-        <!-- 日出日落光晕（晴天缓慢呼吸） -->
-        <ImageView
-            android:id="@+id/glow_overlay"
-            android:layout_width="320dp"
-            android:layout_height="320dp"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="10dp"
-            android:alpha="0.7"
-            android:scaleType="fitXY"
-            android:src="@drawable/sun_glow"
-            android:visibility="gone" />
-
-        <!-- 星空（夜间闪烁） -->
-        <ImageView
-            android:id="@+id/stars_overlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:alpha="0.7"
-            android:scaleType="centerCrop"
-            android:src="@drawable/stars_dots"
-            android:visibility="gone" />
+            android:layout_height="match_parent" />
 
         <!-- 动态天气粒子层：雨/雪/雾/晴日光尘（程序化逐帧渲染，按天气代码切换） -->
         <com.liuli.weather.ui.main.WeatherEffectsView

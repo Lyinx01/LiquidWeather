@@ -46,6 +46,7 @@ import com.liuli.weather.ui.main.DetailsAdapter
 import com.liuli.weather.ui.main.HourlyAdapter
 import com.liuli.weather.ui.main.MainUiState
 import com.liuli.weather.ui.main.MainViewModel
+import com.liuli.weather.ui.main.SkyBackgroundView
 import com.liuli.weather.ui.main.WeatherEffectsView
 import com.liuli.weather.util.TimeUtils
 import com.liuli.weather.util.UnitConverter
@@ -111,8 +112,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         }
     }
 
-    // 背景动画（云层飘移/星空闪烁/雨丝下落/光晕呼吸）
-    private val backgroundAnimators = mutableListOf<android.animation.Animator>()
+    // 背景动画暂停状态（天空与粒子层各自持有逐帧驱动）
     private var backgroundAnimating = true
 
     private val permissionLauncher = registerForActivityResult(
@@ -322,63 +322,32 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     // ------------------------------------------------- background animations
 
-    /** 云层缓慢飘移、星空/光晕呼吸；雨雪雾由 WeatherEffectsView 程序化渲染。暂停时全部冻结省电。 */
+    /**
+     * 天空背景由 [SkyBackgroundView] 自己逐帧绘制（渐变呼吸 + 云层视差 + 日月弧线 + 星空），
+     * 雨雪雾等前景粒子由 WeatherEffectsView 负责；两者都在 onPause/onResume 里冻结。
+     *
+     * 注意：不要给天空层设 LAYER_TYPE_HARDWARE。原实现用它来给「只做平移」的云图层
+     * 省重绘，但天空层每帧都会整体重绘，硬件层反而多一次全屏纹理拷贝。
+     */
     private fun setupBackgroundAnimations() {
-        val screenW = resources.displayMetrics.widthPixels.toFloat()
-
-        // 动画图层走硬件层：alpha/位移由 GPU 合成，避免每帧软件重绘整屏
-        listOf(
-            binding.cloud1, binding.cloud2, binding.cloud3,
-            binding.starsOverlay, binding.glowOverlay
-        ).forEach { it.setLayerType(View.LAYER_TYPE_HARDWARE, null) }
-
-        // 云层横向飘移（周期很长，营造缓慢流动感）
-        backgroundAnimators += driftAnimator(binding.cloud1, -700f, screenW + 250f, 200_000L)
-        backgroundAnimators += driftAnimator(binding.cloud2, screenW + 300f, -800f, 260_000L)
-        backgroundAnimators += driftAnimator(binding.cloud3, -600f, screenW + 200f, 320_000L)
-
-        // 星空闪烁（透明度呼吸）
-        backgroundAnimators += ObjectAnimator.ofFloat(
-            binding.starsOverlay, View.ALPHA, 0.45f, 0.95f
-        ).apply {
-            duration = 3200L
-            repeatCount = ValueAnimator.INFINITE
-            repeatMode = ValueAnimator.REVERSE
-            interpolator = LinearInterpolator()
-        }
-
-        // 太阳光晕呼吸
-        backgroundAnimators += ObjectAnimator.ofFloat(
-            binding.glowOverlay, View.ALPHA, 0.5f, 0.95f
-        ).apply {
-            duration = 5200L
-            repeatCount = ValueAnimator.INFINITE
-            repeatMode = ValueAnimator.REVERSE
-            interpolator = LinearInterpolator()
-        }
-
-        backgroundAnimators.forEach { it.start() }
     }
 
-    private fun driftAnimator(
-        view: View,
-        from: Float,
-        to: Float,
-        duration: Long
-    ): ObjectAnimator = ObjectAnimator.ofFloat(view, View.TRANSLATION_X, from, to).apply {
-        this.duration = duration
-        repeatCount = ValueAnimator.INFINITE
-        interpolator = LinearInterpolator()
-    }
-
-    /** 按天气切换动态背景：星空/光晕显隐 + 程序化粒子层（雨/雪/雾/光尘）。 */
+    /** 按天气切换动态背景：天空配色/云量/星空/闪电 + 前景粒子层。 */
     private fun updateBackgroundLayers(skycon: String?) {
         val code = skycon ?: "CLEAR_DAY"
-        val isNight = WeatherCodeMapper.isNight(code)
-        val isClear = code == "CLEAR_DAY"
 
-        binding.starsOverlay.visibility = if (isNight) View.VISIBLE else View.GONE
-        binding.glowOverlay.visibility = if (isClear) View.VISIBLE else View.GONE
+        binding.skyBg.sky = when {
+            code == "CLEAR_NIGHT" || code == "PARTLY_CLOUDY_NIGHT" -> SkyBackgroundView.Sky.NIGHT
+            code == "PARTLY_CLOUDY_DAY" -> SkyBackgroundView.Sky.CLOUDY
+            code.contains("RAIN") && (code == "STORM_RAIN" || code == "THUNDER_SHOWER") ->
+                SkyBackgroundView.Sky.STORM
+            code.contains("RAIN") -> SkyBackgroundView.Sky.RAIN
+            code.contains("SNOW") -> SkyBackgroundView.Sky.SNOW
+            code.contains("FOG") || code.contains("HAZE") ||
+                code == "DUST" || code == "SAND" -> SkyBackgroundView.Sky.FOG
+            code == "CLEAR_DAY" -> SkyBackgroundView.Sky.SUNNY
+            else -> SkyBackgroundView.Sky.CLOUDY
+        }
 
         // 程序化粒子层：按天气代码选择模式（玻璃卡片的折射细节随之动态化）
         binding.weatherEffects.mode = when {
@@ -397,7 +366,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         super.onPause()
         // 冻结背景动画并关闭所有动态采样，避免后台耗电
         backgroundAnimating = false
-        backgroundAnimators.forEach { it.pause() }
+        binding.skyBg.pause()
         binding.weatherEffects.pause()
         glassIdleHandler.removeCallbacks(cardRefreshRunnable)
         floatingGlasses.forEach { it.enableDynamicBackground = false }
@@ -407,7 +376,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     override fun onResume() {
         super.onResume()
         backgroundAnimating = true
-        backgroundAnimators.forEach { it.resume() }
+        binding.skyBg.resume()
         binding.weatherEffects.resume()
         applyGlassDynamicPolicy()
         // 兜底：设置页关闭后回到前台时解除过渡模糊（正常路径由 revealMain 回调触发）
@@ -507,8 +476,12 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     private fun render(w: Weather) {
         val imperial = settings?.imperialUnits == true
-        binding.bgSky.setBackgroundResource(WeatherCodeMapper.backgroundFor(w.current.skycon))
         updateBackgroundLayers(w.current.skycon)
+        binding.skyBg.setTimeContext(
+            System.currentTimeMillis(),
+            w.daily.firstOrNull()?.sunrise,
+            w.daily.firstOrNull()?.sunset
+        )
         binding.tvTitle.text = w.location.name
         binding.tvTemp.text = "${UnitConverter.displayInt(w.current.temperature, imperial)}°"
         binding.tvCondition.text = w.current.skyconName
@@ -843,10 +816,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
      * dispatchDraw 会带上子视图变换），采样保持正确。
      */
     private val pushInChildren: List<View> by lazy {
-        listOf(
-            binding.bgSky, binding.cloud1, binding.cloud2, binding.cloud3,
-            binding.starsOverlay, binding.weatherEffects, binding.glowOverlay
-        )
+        listOf(binding.skyBg, binding.weatherEffects)
     }
 
     /** 以图标为轴心缩放内容层：图标位置几乎不动、四周向外扩展（SpringBoard 纵深） */
@@ -919,8 +889,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     override fun onDestroy() {
         super.onDestroy()
         glassIdleHandler.removeCallbacks(glassIdleRunnable)
-        backgroundAnimators.forEach { it.cancel() }
-        backgroundAnimators.clear()
+        binding.skyBg.pause()
         transitionAnimator?.cancel()
         SettingsActivity.revealMain = null
         barHandler.removeCallbacksAndMessages(null)
