@@ -47,6 +47,11 @@ class WeatherEffectsView @JvmOverloads constructor(
     private var lastFrameNs = 0L
     private var timeSec = 0f
 
+    private companion object {
+        /** 玻璃水珠数量上限（静止 + 流淌） */
+        const val MAX_BEADS = 26
+    }
+
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     // ---- 雨 ----
@@ -64,6 +69,17 @@ class WeatherEffectsView @JvmOverloads constructor(
         var alpha = 0; var alphaSpeed = 0f
     }
     private val flakes = ArrayList<Flake>(160)
+
+    // ---- 玻璃水珠（雨点打在屏幕上的近景层）----
+    private class Bead {
+        var x = 0f; var y = 0f; var r = 0f
+        var vy = 0f          // 0 = 静止停留；>0 = 正在流下
+        var drift = 0f       // 流下的轻微横向漂移
+        var alpha = 0
+        var sleeping = true  // true = 静止，false = 流淌中
+    }
+    private val beads = ArrayList<Bead>(40)
+    private var beadTimer = 0f
 
     // ---- 雾 ----
     private class Band {
@@ -148,13 +164,21 @@ class WeatherEffectsView @JvmOverloads constructor(
         drops.clear()
         flakes.clear()
         bands.clear()
+        beads.clear()
+        beadTimer = 0f
         val w = width.toFloat()
         val h = height.toFloat()
         if (w <= 0f || h <= 0f) return
 
         when (mode) {
-            Mode.RAIN -> buildRain(w, h, storm = false)
-            Mode.STORM -> buildRain(w, h, storm = true)
+            Mode.RAIN -> {
+                buildRain(w, h, storm = false)
+                buildBeads(w, h, initial = true)
+            }
+            Mode.STORM -> {
+                buildRain(w, h, storm = true)
+                buildBeads(w, h, initial = true)
+            }
             Mode.SNOW -> buildSnow(w, h)
             Mode.MOTES -> buildMotes(w, h)
             Mode.MIST -> buildMist(w, h)
@@ -207,6 +231,48 @@ class WeatherEffectsView @JvmOverloads constructor(
                     alphaSpeed = 0.6f + Random.nextFloat() * 1.2f
                 })
             }
+        }
+    }
+
+    /** 玻璃水珠：初始铺一批静止的（雨点刚打在"屏幕玻璃"上），之后按节奏补充 */
+    private fun buildBeads(w: Float, h: Float, initial: Boolean) {
+        if (!initial && beads.size >= MAX_BEADS) return
+        val count = if (initial) 14 else 1
+        repeat(count) {
+            if (beads.size >= MAX_BEADS) return
+            // 大多落在屏幕上半部（更远的"玻璃"上显得小），少量大颗
+            val big = Random.nextFloat() < 0.25f
+            beads.add(Bead().apply {
+                r = if (big) dp(3.2f) + Random.nextFloat() * dp(3.5f)
+                else dp(1.1f) + Random.nextFloat() * dp(1.8f)
+                x = dp(6f) + Random.nextFloat() * (w - dp(12f))
+                y = dp(20f) + Random.nextFloat() * (h * 0.72f)
+                alpha = if (big) 150 + Random.nextInt(60) else 90 + Random.nextInt(70)
+                // 约 1/3 的水珠会开始流淌
+                sleeping = Random.nextFloat() > 0.34f
+                vy = if (sleeping) 0f else dp(14f) + Random.nextFloat() * dp(26f)
+                drift = (Random.nextFloat() - 0.5f) * dp(3f)
+            })
+        }
+    }
+
+    /** 水珠推进：流淌的下落（略微加速），静置的偶尔"醒来"；流出底部后回收 */
+    private fun stepBeads(dt: Float, w: Float, h: Float) {
+        beadTimer += dt
+        // 每 0.55s 补一颗新水珠（密度上限内）
+        if (beadTimer >= 0.55f) {
+            beadTimer = 0f
+            buildBeads(w, h, initial = false)
+        }
+        val it = beads.iterator()
+        while (it.hasNext()) {
+            val b = it.next()
+            if (b.sleeping) continue
+            b.vy += dp(26f) * dt        // 重力：越流越快
+            b.y += b.vy * dt
+            b.x += b.drift * dt
+            // 流淌的水珠尾迹会留下小水痕（略微缩小透明度表示消耗）
+            if (b.y - b.r > h) it.remove()
         }
     }
 
@@ -271,6 +337,7 @@ class WeatherEffectsView @JvmOverloads constructor(
                         d.x += w * 1.3f
                     }
                 }
+                stepBeads(dt, w, h)
             }
             Mode.SNOW -> {
                 for (f in flakes) {
@@ -311,11 +378,43 @@ class WeatherEffectsView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         when (mode) {
-            Mode.RAIN, Mode.STORM -> drawRain(canvas)
+            Mode.RAIN, Mode.STORM -> {
+                drawRain(canvas)
+                drawBeads(canvas)
+            }
             Mode.SNOW -> drawSnow(canvas)
             Mode.MOTES -> drawMotes(canvas)
             Mode.MIST -> drawMist(canvas)
             Mode.NONE -> Unit
+        }
+    }
+
+    /**
+     * 玻璃水珠：近景层。静止的偏冷白、流淌的带一点高光与拖尾——
+     * 这是 iOS 天气里最有辨识度的雨天细节，与液态玻璃主题天然契合。
+     */
+    private fun drawBeads(canvas: Canvas) {
+        val p = paint
+        p.style = Paint.Style.FILL
+        for (b in beads) {
+            if (b.y < -dp(10f) || b.y > height + dp(10f)) continue
+            // 流淌中的水珠先画一条淡淡的尾迹
+            if (!b.sleeping) {
+                p.color = 0xFFDCEBFA.toInt()
+                p.alpha = (b.alpha * 0.35f).toInt()
+                canvas.drawRoundRect(
+                    b.x - b.r * 0.55f, b.y - b.r * 1.2f, b.x + b.r * 0.55f, b.y,
+                    b.r * 0.55f, b.r * 0.55f, p
+                )
+            }
+            // 珠体：冷白半透明
+            p.color = 0xFFEAF4FF.toInt()
+            p.alpha = b.alpha
+            canvas.drawCircle(b.x, b.y, b.r, p)
+            // 高光点（左上小亮斑，玻璃折射感）
+            p.color = 0xFFFFFFFF.toInt()
+            p.alpha = (b.alpha * 0.85f).toInt()
+            canvas.drawCircle(b.x - b.r * 0.32f, b.y - b.r * 0.34f, b.r * 0.32f, p)
         }
     }
 
