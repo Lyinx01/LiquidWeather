@@ -46,6 +46,7 @@ import com.liuli.weather.ui.main.DetailsAdapter
 import com.liuli.weather.ui.main.HourlyAdapter
 import com.liuli.weather.ui.main.MainUiState
 import com.liuli.weather.ui.main.MainViewModel
+import com.liuli.weather.ui.main.WeatherEffectsView
 import com.liuli.weather.util.TimeUtils
 import com.liuli.weather.util.UnitConverter
 import com.liuli.weather.util.WeatherCodeMapper
@@ -321,14 +322,14 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
 
     // ------------------------------------------------- background animations
 
-    /** 云层缓慢飘移、星空/光晕呼吸、雨丝下落；暂停时全部冻结省电。 */
+    /** 云层缓慢飘移、星空/光晕呼吸；雨雪雾由 WeatherEffectsView 程序化渲染。暂停时全部冻结省电。 */
     private fun setupBackgroundAnimations() {
         val screenW = resources.displayMetrics.widthPixels.toFloat()
 
         // 动画图层走硬件层：alpha/位移由 GPU 合成，避免每帧软件重绘整屏
         listOf(
             binding.cloud1, binding.cloud2, binding.cloud3,
-            binding.starsOverlay, binding.rainOverlay, binding.glowOverlay
+            binding.starsOverlay, binding.glowOverlay
         ).forEach { it.setLayerType(View.LAYER_TYPE_HARDWARE, null) }
 
         // 云层横向飘移（周期很长，营造缓慢流动感）
@@ -356,15 +357,6 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
             interpolator = LinearInterpolator()
         }
 
-        // 雨丝下落（纵向循环滚动）
-        backgroundAnimators += ObjectAnimator.ofFloat(
-            binding.rainOverlay, View.TRANSLATION_Y, -screenW * 0.5f, screenW * 0.5f
-        ).apply {
-            duration = 1400L
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = LinearInterpolator()
-        }
-
         backgroundAnimators.forEach { it.start() }
     }
 
@@ -379,16 +371,26 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         interpolator = LinearInterpolator()
     }
 
-    /** 按天气切换动态背景层的可见性。 */
+    /** 按天气切换动态背景：星空/光晕显隐 + 程序化粒子层（雨/雪/雾/光尘）。 */
     private fun updateBackgroundLayers(skycon: String?) {
         val code = skycon ?: "CLEAR_DAY"
         val isNight = WeatherCodeMapper.isNight(code)
-        val isRain = code.contains("RAIN") || code == "THUNDER_SHOWER"
         val isClear = code == "CLEAR_DAY"
 
         binding.starsOverlay.visibility = if (isNight) View.VISIBLE else View.GONE
-        binding.rainOverlay.visibility = if (isRain) View.VISIBLE else View.GONE
         binding.glowOverlay.visibility = if (isClear) View.VISIBLE else View.GONE
+
+        // 程序化粒子层：按天气代码选择模式（玻璃卡片的折射细节随之动态化）
+        binding.weatherEffects.mode = when {
+            code == "THUNDER_SHOWER" || code == "STORM_RAIN" ->
+                WeatherEffectsView.Mode.STORM
+            code.contains("RAIN") -> WeatherEffectsView.Mode.RAIN
+            code.contains("SNOW") -> WeatherEffectsView.Mode.SNOW
+            code.contains("FOG") || code.contains("HAZE") ||
+                code == "DUST" || code == "SAND" -> WeatherEffectsView.Mode.MIST
+            code == "CLEAR_DAY" -> WeatherEffectsView.Mode.MOTES
+            else -> WeatherEffectsView.Mode.NONE
+        }
     }
 
     override fun onPause() {
@@ -396,6 +398,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         // 冻结背景动画并关闭所有动态采样，避免后台耗电
         backgroundAnimating = false
         backgroundAnimators.forEach { it.pause() }
+        binding.weatherEffects.pause()
         glassIdleHandler.removeCallbacks(cardRefreshRunnable)
         floatingGlasses.forEach { it.enableDynamicBackground = false }
         cardGlasses.forEach { it.enableDynamicBackground = false }
@@ -405,6 +408,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         super.onResume()
         backgroundAnimating = true
         backgroundAnimators.forEach { it.resume() }
+        binding.weatherEffects.resume()
         applyGlassDynamicPolicy()
         // 兜底：设置页关闭后回到前台时解除过渡模糊（正常路径由 revealMain 回调触发）
         if (currentBlurPx > 0f) {
@@ -841,7 +845,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     private val pushInChildren: List<View> by lazy {
         listOf(
             binding.bgSky, binding.cloud1, binding.cloud2, binding.cloud3,
-            binding.starsOverlay, binding.rainOverlay, binding.glowOverlay
+            binding.starsOverlay, binding.weatherEffects, binding.glowOverlay
         )
     }
 

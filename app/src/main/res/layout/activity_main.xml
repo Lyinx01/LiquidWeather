@@ -67,14 +67,11 @@
             android:src="@drawable/stars_dots"
             android:visibility="gone" />
 
-        <!-- 雨丝（降雨时下落） -->
-        <ImageView
-            android:id="@+id/rain_overlay"
+        <!-- 动态天气粒子层：雨/雪/雾/晴日光尘（程序化逐帧渲染，按天气代码切换） -->
+        <com.liuli.weather.ui.main.WeatherEffectsView
+            android:id="@+id/weather_effects"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:alpha="0.45"
-            android:scaleType="fitXY"
-            android:src="@drawable/rain_streaks"
             android:visibility="gone" />
     </FrameLayout>
 
