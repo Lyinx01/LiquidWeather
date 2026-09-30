@@ -194,13 +194,16 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 分隔细线：把「此刻」与「未来」在视觉上分开 -->
-        <View
+        <!-- 分隔细线：把「此刻」与「未来」在视觉上分开
+             注意：RemoteViews 不支持 <View> 标签，分隔线必须用 ImageView/TextView -->
+        <ImageView
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="2dp"
             android:layout_marginBottom="6dp"
-            android:background="#26FFFFFF" />
+            android:background="#26FFFFFF"
+            android:contentDescription="@null"
+            android:scaleType="fitXY" />
 
         <!-- 第三行：逐小时（6 列，含降水概率与日出/日落时刻） -->
         <LinearLayout
