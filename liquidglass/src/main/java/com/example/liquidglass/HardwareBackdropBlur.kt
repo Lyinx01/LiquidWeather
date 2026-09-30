@@ -111,8 +111,8 @@ internal class HardwareBackdropBlur {
     // API 36+ vibrancy 饱和度滤镜（非线性；不支持时回退 ColorMatrix）
     private var vibrancyFilter: RuntimeColorFilter? = null
 
-    private val location = IntArray(2)
-    private val parentLocation = IntArray(2)
+    /** 采样偏移（未缩放坐标，x/y）。复用数组，避免逐帧分配。 */
+    private val offsetOut = FloatArray(2)
 
     private val backdropCapture = BackdropCapture()
 
@@ -161,11 +161,11 @@ internal class HardwareBackdropBlur {
             effectBuilt = true
         }
 
-        // 计算相对背景视图的偏移（用屏幕坐标差，兼容滚动容器与跨 window 的背景视图）
-        glassView.getLocationOnScreen(location)
-        parent.getLocationOnScreen(parentLocation)
-        val offsetX = (location[0] - parentLocation[0]).toFloat()
-        val offsetY = (location[1] - parentLocation[1]).toFloat()
+        // 计算相对背景视图的偏移（用屏幕坐标差，兼容滚动容器与跨 window 的背景视图）。
+        // 用 GlassSampleGeometry 还原成未缩放偏移，避免玻璃被按压放大时采样内容错位。
+        GlassSampleGeometry.unscaledOffset(glassView, parent, offsetOut)
+        val offsetX = offsetOut[0]
+        val offsetY = offsetOut[1]
 
         renderNode.setPosition(0, 0, width, height)
         val recordingCanvas = renderNode.beginRecording(width, height)

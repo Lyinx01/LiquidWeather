@@ -53,6 +53,9 @@ class EnhancedBlurEffect(
     // 传统 Box Blur 工具
     private val fastBlur = AdvancedFastBlur()
 
+    /** 采样偏移（未缩放坐标，x/y）。复用数组，避免每次捕获都分配。 */
+    private val sampleOffset = FloatArray(2)
+
     // 模糊方法（默认智能选择）
     var blurMethod = BlurMethod.SMART
 
@@ -108,15 +111,11 @@ class EnhancedBlurEffect(
         val canvas = Canvas(backdrop)
 
         try {
-            // 获取视图相对背景视图的实际位置（屏幕坐标差，兼容跨层级/跨 window）
-            val location = IntArray(2)
-            view.getLocationOnScreen(location)
-            val parentLocation = IntArray(2)
-            parent.getLocationOnScreen(parentLocation)
-
-            // 计算视图相对于父容器的偏移
-            val offsetX = (location[0] - parentLocation[0]).toFloat()
-            val offsetY = (location[1] - parentLocation[1]).toFloat()
+            // 获取视图相对背景视图的实际位置（屏幕坐标差，兼容跨层级/跨 window）。
+            // 用 GlassSampleGeometry 还原成未缩放偏移，避免玻璃被按压放大时采样内容错位。
+            GlassSampleGeometry.unscaledOffset(view, parent, sampleOffset)
+            val offsetX = sampleOffset[0]
+            val offsetY = sampleOffset[1]
 
             // ✅ 先缩放再平移：父视图直接绘制到缩小的画布上
             if (scale < 1f) {

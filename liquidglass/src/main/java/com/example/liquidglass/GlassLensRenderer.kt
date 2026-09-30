@@ -334,8 +334,8 @@ internal class GlassLensRenderer {
     private var lastHeight = 0
     private var lastMargin = -1
 
-    private val location = IntArray(2)
-    private val parentLocation = IntArray(2)
+    /** 采样偏移（未缩放坐标，x/y）。复用数组，避免逐帧分配。 */
+    private val sampleOffset = FloatArray(2)
 
     private val backdropCapture = BackdropCapture()
 
@@ -376,11 +376,12 @@ internal class GlassLensRenderer {
         }
 
         // 计算相对背景视图的偏移（屏幕坐标差：兼容滚动容器，且背景视图在
-        // 另一个 window（Dialog/PopupWindow）时也成立）
-        glassView.getLocationOnScreen(location)
-        parent.getLocationOnScreen(parentLocation)
-        val offsetX = (location[0] - parentLocation[0]).toFloat()
-        val offsetY = (location[1] - parentLocation[1]).toFloat()
+        // 另一个 window（Dialog/PopupWindow）时也成立）。
+        // 必须用「未缩放」偏移：玻璃被按压放大时 getLocationOnScreen 给的是变换后的
+        // 左上角，而录制区按未缩放的 width/height 1:1 取样，直接用会让折射内容错位。
+        GlassSampleGeometry.unscaledOffset(glassView, parent, sampleOffset)
+        val offsetX = sampleOffset[0]
+        val offsetY = sampleOffset[1]
 
         val recW = width + 2 * margin
         val recH = height + 2 * margin
