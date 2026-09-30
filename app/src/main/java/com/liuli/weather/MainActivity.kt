@@ -766,7 +766,13 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     }
 
     /** 主页整体模糊 + 压暗，与设置页展开动画同步（速率曲线同 iOS）。 */
-    /** SpringBoard 式主屏退隐：整体向设置图标方向轻微推近（放大）+ 模糊 + 压暗。 */
+    /**
+     * SpringBoard 式主屏退隐：内容层向设置图标方向轻微推近（放大）+ 模糊 + 压暗。
+     *
+     * 只缩放「无玻璃」的内容层（天空层 + 卡片滚动区）：玻璃按屏幕坐标采样背景，
+     * 整体缩放 mainRoot 会使玻璃的采样区域与显示画面错位、采到内容边界外的黑色
+     * （真机表现为底部控件发黑）。玻璃浮层本身不参与缩放，采样坐标保持正确。
+     */
     private fun blurMainForTransition() {
         transitionAnimator?.cancel()
         val loc = IntArray(2)
@@ -783,11 +789,7 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
                 val t = (it.animatedValue as Float).coerceIn(0f, 1f)
                 applyMainBlur(blurTo * t)
                 transitionScrim.alpha = 0.22f * t
-                // 以图标为轴心放大：图标位置几乎不动，四周向外扩展（SpringBoard 纵深）
-                binding.mainRoot.pivotX = px
-                binding.mainRoot.pivotY = py
-                binding.mainRoot.scaleX = 1f + 0.06f * t
-                binding.mainRoot.scaleY = 1f + 0.06f * t
+                applyPushInScale(px, py, 1f + 0.06f * t)
             }
             start()
         }
@@ -799,12 +801,15 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
         val from = currentBlurPx
         if (from <= 0.5f) {
             transitionScrim.visibility = View.GONE
-            binding.mainRoot.scaleX = 1f
-            binding.mainRoot.scaleY = 1f
+            applyPushInScale(0f, 0f, 1f)
             return
         }
         val blurMax = dp(22).toFloat()
-        val fromScale = binding.mainRoot.scaleX
+        val loc = IntArray(2)
+        binding.glassBtnSettings.getLocationOnScreen(loc)
+        val px = (loc[0] + binding.glassBtnSettings.width / 2f).toFloat()
+        val py = (loc[1] + binding.glassBtnSettings.height / 2f).toFloat()
+        val fromScale = pushInChildren.firstOrNull()?.scaleX ?: 1f
         transitionAnimator = ValueAnimator.ofFloat(from, 0f).apply {
             // iOS 应用退出：440ms 弹簧，与设置页缩回同步
             duration = 440L
@@ -814,15 +819,44 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
                 applyMainBlur(v)
                 transitionScrim.alpha = 0.22f * (v / blurMax)
                 val s = 1f + (fromScale - 1f) * (v / from.coerceAtLeast(1f))
-                binding.mainRoot.scaleX = s
-                binding.mainRoot.scaleY = s
+                applyPushInScale(px, py, s)
                 if (v <= 0.5f) {
                     transitionScrim.visibility = View.GONE
-                    binding.mainRoot.scaleX = 1f
-                    binding.mainRoot.scaleY = 1f
+                    applyPushInScale(px, py, 1f)
                 }
             }
             start()
+        }
+    }
+
+    /**
+     * 参与 SpringBoard 推近的层：只含背景装饰（天空 + 云层 + 光效），
+     * 绝不包含任何玻璃控件或其采样源容器。
+     *
+     * 教训：对 bgContainer / scroll 整体施加缩放会破坏玻璃采样——玻璃按屏幕坐标
+     * 计算采样偏移，容器缩放后偏移与被录内容错位，采样落到界外渲染为黑块
+     * （表现为过渡期间底部控件整片发黑）。缩放装饰子视图则两者同步（录制时
+     * dispatchDraw 会带上子视图变换），采样保持正确。
+     */
+    private val pushInChildren: List<View> by lazy {
+        listOf(
+            binding.bgSky, binding.cloud1, binding.cloud2, binding.cloud3,
+            binding.starsOverlay, binding.rainOverlay, binding.glowOverlay
+        )
+    }
+
+    /** 以图标为轴心缩放内容层：图标位置几乎不动、四周向外扩展（SpringBoard 纵深） */
+    private fun applyPushInScale(pivotX: Float, pivotY: Float, scale: Float) {
+        pushInChildren.forEach { v ->
+            if (scale <= 1.0001f) {
+                v.scaleX = 1f
+                v.scaleY = 1f
+            } else {
+                v.pivotX = pivotX
+                v.pivotY = pivotY
+                v.scaleX = scale
+                v.scaleY = scale
+            }
         }
     }
 
