@@ -221,8 +221,10 @@ class SettingsActivity : AppCompatActivity() {
         val toR = if (open) rEnd else rStart
         val fromA = if (open) 0.85f else 1f
         val toA = if (open) 1f else 0f
-        val fromS = if (open) 1.06f else 1f
-        val toS = if (open) 1f else 1.06f
+        // iOS SpringBoard 纵深：内容向图标方向"推近"——展开时从略小长到原尺寸，
+        // 收起时向图标方向缩回（原来是反的：从放大回落，观感像收缩落定）
+        val fromS = if (open) 0.94f else 1f
+        val toS = if (open) 1f else 0.94f
 
         // 收起从"圆盖全屏"起跳，与矩形模式无视觉差异；展开结束切回矩形模式
         revealCircleMode = true
@@ -236,13 +238,18 @@ class SettingsActivity : AppCompatActivity() {
             revealMain?.invoke()
         }
         ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = if (open) 460L else 380L
-            interpolator = PathInterpolator(0.32f, 0.72f, 0f, 1f)
+            // iOS 应用启动/退出：弹簧曲线（约 1% 轻微过冲，落定带一点"弹"感）
+            duration = if (open) 500L else 440L
+            interpolator = if (open) {
+                com.example.liquidglass.IOSSpringInterpolator(0.42f, 0.84f)
+            } else {
+                com.example.liquidglass.IOSSpringInterpolator(0.38f, 0.86f)
+            }
             addUpdateListener { anim ->
                 val t = anim.animatedValue as Float
                 revealR = fromR + (toR - fromR) * t
                 root.invalidateOutline()
-                root.alpha = fromA + (toA - fromA) * t
+                root.alpha = (fromA + (toA - fromA) * t).coerceIn(0f, 1f)
                 applyContentScale(fromS + (toS - fromS) * t)
             }
             doOnEnd {

@@ -766,39 +766,61 @@ class MainActivity : AppCompatActivity(), CityPickerSheet.Callback {
     }
 
     /** 主页整体模糊 + 压暗，与设置页展开动画同步（速率曲线同 iOS）。 */
+    /** SpringBoard 式主屏退隐：整体向设置图标方向轻微推近（放大）+ 模糊 + 压暗。 */
     private fun blurMainForTransition() {
         transitionAnimator?.cancel()
+        val loc = IntArray(2)
+        binding.glassBtnSettings.getLocationOnScreen(loc)
+        val px = (loc[0] + binding.glassBtnSettings.width / 2f).toFloat()
+        val py = (loc[1] + binding.glassBtnSettings.height / 2f).toFloat()
         transitionScrim.visibility = View.VISIBLE
         val blurTo = dp(22).toFloat()
         transitionAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 420L
-            interpolator = com.liuli.weather.ui.common.Motion.iosAppLaunch
+            // iOS 应用启动：500ms 弹簧，主屏退隐与展开动画同一节奏
+            duration = 500L
+            interpolator = com.example.liquidglass.IOSSpringInterpolator(0.42f, 0.84f)
             addUpdateListener {
-                val t = it.animatedValue as Float
+                val t = (it.animatedValue as Float).coerceIn(0f, 1f)
                 applyMainBlur(blurTo * t)
                 transitionScrim.alpha = 0.22f * t
+                // 以图标为轴心放大：图标位置几乎不动，四周向外扩展（SpringBoard 纵深）
+                binding.mainRoot.pivotX = px
+                binding.mainRoot.pivotY = py
+                binding.mainRoot.scaleX = 1f + 0.06f * t
+                binding.mainRoot.scaleY = 1f + 0.06f * t
             }
             start()
         }
     }
 
-    /** 解除主页模糊与压暗；设置页开始缩回图标时由其回调触发，两条动画并行。 */
+    /** 解除主页模糊压暗与推近；设置页开始缩回图标时由其回调触发，两条动画并行。 */
     private fun revealMainFromTransition() {
         transitionAnimator?.cancel()
         val from = currentBlurPx
         if (from <= 0.5f) {
             transitionScrim.visibility = View.GONE
+            binding.mainRoot.scaleX = 1f
+            binding.mainRoot.scaleY = 1f
             return
         }
         val blurMax = dp(22).toFloat()
+        val fromScale = binding.mainRoot.scaleX
         transitionAnimator = ValueAnimator.ofFloat(from, 0f).apply {
-            duration = 380L
-            interpolator = com.liuli.weather.ui.common.Motion.iosAppLaunch
+            // iOS 应用退出：440ms 弹簧，与设置页缩回同步
+            duration = 440L
+            interpolator = com.example.liquidglass.IOSSpringInterpolator(0.38f, 0.86f)
             addUpdateListener {
-                val v = it.animatedValue as Float
+                val v = (it.animatedValue as Float).coerceAtLeast(0f)
                 applyMainBlur(v)
                 transitionScrim.alpha = 0.22f * (v / blurMax)
-                if (v <= 0.5f) transitionScrim.visibility = View.GONE
+                val s = 1f + (fromScale - 1f) * (v / from.coerceAtLeast(1f))
+                binding.mainRoot.scaleX = s
+                binding.mainRoot.scaleY = s
+                if (v <= 0.5f) {
+                    transitionScrim.visibility = View.GONE
+                    binding.mainRoot.scaleX = 1f
+                    binding.mainRoot.scaleY = 1f
+                }
             }
             start()
         }
