@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  小部件背景（晴）。
+  约束：layer-list 的每个 item 都要显式写与底层相同的 <corners>，且不要用 android:gravity。
+  带 gravity 的 item 按 drawable 的 intrinsic size 摆放，而径向渐变 shape 的 intrinsic
+  size 是 2*gradientRadius，会溢出圆角，在圆角缺口处露出一块直角色块。
+-->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape>
@@ -10,8 +16,9 @@
                 android:endColor="#FF6FD6F5" />
         </shape>
     </item>
-    <item android:gravity="top|start">
+    <item>
         <shape>
+            <corners android:radius="28dp" />
             <gradient
                 android:type="radial"
                 android:centerX="0"
@@ -21,8 +28,9 @@
                 android:endColor="#00FFFFFF" />
         </shape>
     </item>
-    <item android:gravity="bottom">
+    <item>
         <shape>
+            <corners android:radius="28dp" />
             <gradient
                 android:angle="90"
                 android:startColor="#00FFFFFF"

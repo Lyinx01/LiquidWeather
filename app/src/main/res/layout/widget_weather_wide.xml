@@ -5,8 +5,15 @@
   - 主次分层：超大温度是唯一视觉主角，城市/状况/高低温都退为次要信息
   - 状况收成胶囊 chip（图标 + 文案同框），比裸文字更精致
   - 逐小时带降水概率，信息密度更高但靠字号/透明度建立层级
-  - 全部文本启用框架级自适应字号：不同桌面网格（如 ColorOS 4x6）高度差异大，
-    固定字号会被纵向裁切
+
+  关键约束（改尺寸前务必先读）：
+  1. 4x2 格子在不同桌面里高度差很多（ColorOS 实测 148dp），必须按最小高度设计。
+  2. 除主温度外一律用固定 textSize，不用 autoSizeTextType —— 实测自动字号会让 TextView
+     量出远大于行高的“幽灵高度”（例如 10sp 文字量出 20.6dp），既挤压版面又让元素间距错乱。
+  3. 主温度要同时给确定宽度（0dp + weight=1）和确定高度（match_parent）。只给 wrap_content
+     宽度时它会被量得比文字还窄，把 "22°" 折成两行、° 被裁掉。
+  当前预算（148dp 高）：内边距 22dp + 第一行 22dp + 分隔线 6dp + 逐小时行 57dp，
+  余下约 40dp 给温度行；温度行用 weight=1，格子更高时自动把温度放大到 56sp。
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
@@ -14,9 +21,9 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg_sunny"
     android:paddingStart="18dp"
-    android:paddingTop="14dp"
+    android:paddingTop="12dp"
     android:paddingEnd="18dp"
-    android:paddingBottom="12dp">
+    android:paddingBottom="10dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -41,12 +48,9 @@
                     android:id="@+id/widget_city"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:autoSizeMaxTextSize="15sp"
-                    android:autoSizeMinTextSize="10sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
                     android:alpha="0.92"
                     android:ellipsize="end"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:shadowColor="#33000000"
                     android:shadowDx="0"
@@ -54,6 +58,7 @@
                     android:shadowRadius="3"
                     android:text="@string/app_name"
                     android:textColor="#FFFFFFFF"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
 
                 <ImageView
@@ -71,14 +76,12 @@
             <LinearLayout
                 android:id="@+id/widget_chip"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="22dp"
                 android:background="@drawable/widget_chip_bg"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingStart="9dp"
-                android:paddingTop="4dp"
-                android:paddingEnd="11dp"
-                android:paddingBottom="4dp">
+                android:paddingEnd="11dp">
 
                 <ImageView
                     android:id="@+id/widget_icon"
@@ -92,13 +95,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
-                    android:autoSizeMaxTextSize="12sp"
-                    android:autoSizeMinTextSize="8sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
                     android:ellipsize="end"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
-                    android:textColor="#FFFFFFFF" />
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -110,27 +111,26 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- 唯一保留自动字号的控件：宽高都给确定值，它才能在 18-56sp 间稳定发挥 -->
             <TextView
                 android:id="@+id/widget_temp"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:autoSizeMaxTextSize="56sp"
-                android:autoSizeMinTextSize="20sp"
+                android:autoSizeMinTextSize="18sp"
                 android:autoSizeStepGranularity="2sp"
                 android:autoSizeTextType="uniform"
+                android:ellipsize="none"
                 android:fontFamily="sans-serif-light"
-                android:gravity="center_vertical"
+                android:gravity="start|center_vertical"
                 android:includeFontPadding="false"
+                android:maxLines="1"
                 android:shadowColor="#3D000000"
                 android:shadowDx="0"
                 android:shadowDy="1"
                 android:shadowRadius="5"
                 android:textColor="#FFFFFFFF" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
 
             <!-- 高/低温：右对齐的两行，标签与数值分列（更易扫读） -->
             <LinearLayout
@@ -142,54 +142,51 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.62"
+                        android:includeFontPadding="false"
                         android:text="@string/widget_high_label"
                         android:textColor="#FFFFFFFF"
-                        android:textSize="10sp" />
+                        android:textSize="9sp" />
 
                     <TextView
                         android:id="@+id/widget_high"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:autoSizeMaxTextSize="17sp"
-                        android:autoSizeMinTextSize="11sp"
-                        android:autoSizeStepGranularity="1sp"
-                        android:autoSizeTextType="uniform"
-                        android:textColor="#FFFFFFFF" />
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="13sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.62"
+                        android:includeFontPadding="false"
                         android:text="@string/widget_low_label"
                         android:textColor="#FFFFFFFF"
-                        android:textSize="10sp" />
+                        android:textSize="9sp" />
 
                     <TextView
                         android:id="@+id/widget_low"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:autoSizeMaxTextSize="17sp"
-                        android:autoSizeMinTextSize="11sp"
-                        android:autoSizeStepGranularity="1sp"
-                        android:autoSizeTextType="uniform"
-                        android:textColor="#FFFFFFFF" />
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -200,7 +197,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="2dp"
-            android:layout_marginBottom="6dp"
+            android:layout_marginBottom="3dp"
             android:background="#26FFFFFF"
             android:contentDescription="@null"
             android:scaleType="fitXY" />
@@ -223,19 +220,17 @@
                     android:id="@+id/hour_1_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:autoSizeMaxTextSize="11sp"
-                    android:autoSizeMinTextSize="7sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#FFFFFFFF"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_1_icon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginTop="5dp"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
 
@@ -244,13 +239,11 @@
                     android:id="@+id/hour_1_prob"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:autoSizeMaxTextSize="9sp"
-                    android:autoSizeMinTextSize="6sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:layout_marginTop="1dp"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#9FD8FF"
+                    android:textSize="9sp"
                     android:visibility="invisible" />
 
                 <TextView
@@ -258,11 +251,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:autoSizeMaxTextSize="14sp"
-                    android:autoSizeMinTextSize="9sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
-                    android:textColor="#FFFFFFFF" />
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -277,19 +269,17 @@
                     android:id="@+id/hour_2_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:autoSizeMaxTextSize="11sp"
-                    android:autoSizeMinTextSize="7sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#FFFFFFFF"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_2_icon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginTop="5dp"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
 
@@ -297,13 +287,11 @@
                     android:id="@+id/hour_2_prob"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:autoSizeMaxTextSize="9sp"
-                    android:autoSizeMinTextSize="6sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:layout_marginTop="1dp"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#9FD8FF"
+                    android:textSize="9sp"
                     android:visibility="invisible" />
 
                 <TextView
@@ -311,11 +299,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:autoSizeMaxTextSize="14sp"
-                    android:autoSizeMinTextSize="9sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
-                    android:textColor="#FFFFFFFF" />
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -330,19 +317,17 @@
                     android:id="@+id/hour_3_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:autoSizeMaxTextSize="11sp"
-                    android:autoSizeMinTextSize="7sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#FFFFFFFF"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_3_icon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginTop="5dp"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
 
@@ -350,13 +335,11 @@
                     android:id="@+id/hour_3_prob"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:autoSizeMaxTextSize="9sp"
-                    android:autoSizeMinTextSize="6sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:layout_marginTop="1dp"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#9FD8FF"
+                    android:textSize="9sp"
                     android:visibility="invisible" />
 
                 <TextView
@@ -364,11 +347,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:autoSizeMaxTextSize="14sp"
-                    android:autoSizeMinTextSize="9sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
-                    android:textColor="#FFFFFFFF" />
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -383,19 +365,17 @@
                     android:id="@+id/hour_4_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:autoSizeMaxTextSize="11sp"
-                    android:autoSizeMinTextSize="7sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#FFFFFFFF"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_4_icon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginTop="5dp"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
 
@@ -403,13 +383,11 @@
                     android:id="@+id/hour_4_prob"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:autoSizeMaxTextSize="9sp"
-                    android:autoSizeMinTextSize="6sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:layout_marginTop="1dp"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#9FD8FF"
+                    android:textSize="9sp"
                     android:visibility="invisible" />
 
                 <TextView
@@ -417,11 +395,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:autoSizeMaxTextSize="14sp"
-                    android:autoSizeMinTextSize="9sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
-                    android:textColor="#FFFFFFFF" />
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -436,19 +413,17 @@
                     android:id="@+id/hour_5_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:autoSizeMaxTextSize="11sp"
-                    android:autoSizeMinTextSize="7sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#FFFFFFFF"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_5_icon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginTop="5dp"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
 
@@ -456,13 +431,11 @@
                     android:id="@+id/hour_5_prob"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:autoSizeMaxTextSize="9sp"
-                    android:autoSizeMinTextSize="6sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:layout_marginTop="1dp"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#9FD8FF"
+                    android:textSize="9sp"
                     android:visibility="invisible" />
 
                 <TextView
@@ -470,11 +443,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:autoSizeMaxTextSize="14sp"
-                    android:autoSizeMinTextSize="9sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
-                    android:textColor="#FFFFFFFF" />
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -489,19 +461,17 @@
                     android:id="@+id/hour_6_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:autoSizeMaxTextSize="11sp"
-                    android:autoSizeMinTextSize="7sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#FFFFFFFF"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/hour_6_icon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginTop="5dp"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_w_sunny" />
 
@@ -509,13 +479,11 @@
                     android:id="@+id/hour_6_prob"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:autoSizeMaxTextSize="9sp"
-                    android:autoSizeMinTextSize="6sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
+                    android:layout_marginTop="1dp"
+                    android:includeFontPadding="false"
                     android:maxLines="1"
                     android:textColor="#9FD8FF"
+                    android:textSize="9sp"
                     android:visibility="invisible" />
 
                 <TextView
@@ -523,11 +491,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:autoSizeMaxTextSize="14sp"
-                    android:autoSizeMinTextSize="9sp"
-                    android:autoSizeStepGranularity="1sp"
-                    android:autoSizeTextType="uniform"
-                    android:textColor="#FFFFFFFF" />
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textColor="#FFFFFFFF"
+                    android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
