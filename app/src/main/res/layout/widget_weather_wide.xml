@@ -210,9 +210,8 @@
 
             <LinearLayout
                 android:id="@+id/hour_1"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
@@ -257,11 +256,17 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
+            <!-- 等分间隙：让首列贴内容左边、末列贴内容右边，与上方城市/胶囊对齐
+                 （RemoteViews 不支持 <Space>/<View>，间隔用空 TextView） -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
             <LinearLayout
                 android:id="@+id/hour_2"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
@@ -305,11 +310,15 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
             <LinearLayout
                 android:id="@+id/hour_3"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
@@ -353,11 +362,15 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
             <LinearLayout
                 android:id="@+id/hour_4"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
@@ -401,11 +414,15 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
             <LinearLayout
                 android:id="@+id/hour_5"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
@@ -449,11 +466,15 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
             <LinearLayout
                 android:id="@+id/hour_6"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
