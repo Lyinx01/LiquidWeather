@@ -406,13 +406,19 @@ class MainActivity : AppCompatActivity() {
         // 左下：刷新
         binding.btnRefresh.setOnClickListener { viewModel.refresh() }
         binding.btnSettings.setOnClickListener { openSettings() }
-        // 顶部城市胶囊：城市管理
-        binding.tvTitle.setOnClickListener {
+
+        // 顶部城市胶囊：点圆角区域内任意位置都能打开城市管理。
+        // 点击必须挂在玻璃本体上而不是里面的文字——文字是 clickable 的 View，
+        // 会把触摸事件自己吃掉，导致胶囊留白处点不动。
+        binding.glassTopbar.setOnClickListener {
             CityPickerSheet.show(supportFragmentManager)
         }
+        // 关掉库内置的按压缩放：它与下面 GlassPressEffect 的缩放会互相覆盖，
+        // 表现为按下去只放大一点点或跳变。统一交给 GlassPressEffect 处理。
+        binding.glassTopbar.enablePressEffect = false
 
         com.liuli.weather.ui.common.GlassPressEffect.attach(
-            binding.glassTopbar, { onGlassPressed(it) }, binding.tvTitle
+            binding.glassTopbar, { onGlassPressed(it) }, binding.glassTopbar
         )
         com.liuli.weather.ui.common.GlassPressEffect.attach(
             binding.glassBtnRefresh, { onGlassPressed(it) }, binding.btnRefresh

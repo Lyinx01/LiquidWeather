@@ -357,36 +357,18 @@
         app:refractionHeight="18dp"
         app:sensorHighlight="true">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tv_title"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:ellipsize="end"
             android:gravity="center"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tv_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxWidth="240dp"
-                android:singleLine="true"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <!-- 下拉指示：顶部胶囊是可点开的城市选择器 -->
-            <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:layout_marginStart="6dp"
-                android:alpha="0.85"
-                android:contentDescription="@null"
-                android:rotation="90"
-                android:src="@drawable/ic_chevron_right"
-                app:tint="@color/white" />
-        </LinearLayout>
+            android:maxWidth="240dp"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
     </com.example.liquidglass.LiquidGlassView>
 
     <!-- 左下：刷新悬浮玻璃按钮 -->

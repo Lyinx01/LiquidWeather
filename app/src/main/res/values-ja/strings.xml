@@ -127,8 +127,6 @@
     <string name="detail_sunset">日の入り</string>
 
     <!-- 設定 -->
-    <string name="settings_city_label">都市の管理</string>
-    <string name="settings_city_empty">都市が未選択</string>
     <string name="settings_source_label">データソース</string>
     <string name="source_caiyun">彩雲天気（中国・アジア太平洋）</string>
     <string name="source_qweather">和風天気（中国）</string>
