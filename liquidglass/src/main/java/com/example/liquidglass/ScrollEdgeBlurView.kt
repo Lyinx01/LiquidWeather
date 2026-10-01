@@ -1,15 +1,22 @@
 /**
- * 渐进模糊覆盖层（对应 Apple 的 Scroll Edge Effect）
+ * 渐进模糊覆盖层（对应 Apple 的 Scroll Edge Effect）。
  *
- * 放置在滚动内容的顶部/底部边缘：内容滚入该区域时，从"清晰"平滑过渡到
- * "模糊"，而不是一条硬边界。iOS 26 的导航栏/工具栏下方就是这种效果。
+ * 放置在滚动内容的顶部/底部边缘：内容滚入该区域时，从清晰"平滑过渡到"模糊，
+ * 而不是一条硬边界。iOS 26 的导航栏/工具栏下方就是这种效果。
  *
- * 实现（API 31+，纯 GPU）：
- * 1. 把父视图内容录制进 contentNode（带垂直外扩，避免模糊边缘吸黑）
- * 2. 两个代理 RenderNode 分别挂 弱模糊 / 强模糊 RenderEffect
- * 3. 用 saveLayer + 线性渐变 DST_IN 遮罩叠加两层：
- *    弱模糊铺满整个渐变带，强模糊集中在靠边缘的窄带
- *    → 两层叠加近似"模糊半径从 0 渐变到最大"的真实渐进模糊
+ * 实现（API 31+，全程 GPU）：
+ * 1. 把父视图内容录制到 contentNode（带垂直外扩，避免模糊边缘吸黑）；
+ * 2. [LAYER_COUNT] 个代理 RenderNode 分别挂**固定**的分级模糊 RenderEffect
+ *    （半径从 max/K 到 max，只建一次，滚动中零重建）；
+ * 3. [progress]（0~1，随滚动距离）驱动各级的叠加透明度：
+ *    a_i = clamp(progress*K - i, 0, 1) —— 合成效果等价于「模糊半径 = progress * max」
+ *    的动态模糊，全部是 GPU 合成（saveLayerAlpha + drawRenderNode），无 CPU 位图；
+ * 4. 每级再用线性渐变 DST_IN 遮罩做空间上的渐进：最弱级铺满整条带，
+ *    最强级集中在 [fadeExtentPx] 以内的贴边区域，中间级线性分布——
+ *    同一时刻画面上"越靠边越模糊、往下逐渐清晰"，且强度随滚动继续增强。
+ *
+ * [fadeExtentPx] 是最强级渐变收尾的像素高度：设为城市胶囊底缘即可让整条
+ * 渐变模糊覆盖到胶囊底部（MainActivity 接线处计算）。
  *
  * API < 31 回退为半透明渐变遮罩（scrim）。
  *
@@ -21,6 +28,7 @@
  * }
  * root.addView(edgeBlur, FrameLayout.LayoutParams(MATCH_PARENT, dp(120), Gravity.TOP))
  * edgeBlur.bindScrollView(scrollView)   // 滚动时自动重绘
+ * edgeBlur.progress = ...               // 随滚动距离驱动强度（GPU 动态模糊）
  * ```
  */
 package com.example.liquidglass
@@ -58,7 +66,7 @@ class ScrollEdgeBlurView @JvmOverloads constructor(
             }
         }
 
-    /** 最大模糊半径（px，靠边缘处的模糊强度） */
+    /** 最大模糊半径（px，贴边处的模糊强度） */
     var maxBlurRadius = 40f
         set(value) {
             val clamped = value.coerceIn(0f, 100f)
@@ -69,19 +77,47 @@ class ScrollEdgeBlurView @JvmOverloads constructor(
             }
         }
 
+    /**
+     * 动态进度 0~1：0 = 无模糊，1 = 完整渐进模糊。
+     * 中间值在 GPU 上按层叠加近似「模糊半径 = progress * maxBlurRadius」，
+     * 不重建任何 RenderEffect。
+     */
+    var progress = 0f
+        set(value) {
+            val clamped = value.coerceIn(0f, 1f)
+            if (field != clamped) {
+                field = clamped
+                invalidate()
+            }
+        }
+
+    /**
+     * 最强级渐变收尾的像素高度（相对本视图顶部）。
+     * 设为「城市胶囊底缘」即可让模糊带覆盖到胶囊底部；<=0 时取高度的 55%。
+     */
+    var fadeExtentPx = -1f
+        set(value) {
+            if (field != value) {
+                field = value
+                gradientsDirty = true
+                invalidate()
+            }
+        }
+
+    private companion object {
+        /** 分级模糊的层数：层数越多半径过渡越平滑，每层只是一次 GPU 合成 */
+        const val LAYER_COUNT = 4
+    }
+
     // GPU 节点（API 31+）
     private var contentNode: RenderNode? = null
-    private var weakNode: RenderNode? = null
-    private var strongNode: RenderNode? = null
+    private var proxyNodes: Array<RenderNode?> = arrayOfNulls(LAYER_COUNT)
     private var effectsDirty = true
     private var gradientsDirty = true
     private var lastEffectRadius = -1f
 
-    private val maskPaintWide = Paint().apply {
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
-    }
-    private val maskPaintNarrow = Paint().apply {
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
+    private val maskPaints = Array(LAYER_COUNT) {
+        Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN) }
     }
     private val scrimPaint = Paint()
 
@@ -98,9 +134,7 @@ class ScrollEdgeBlurView @JvmOverloads constructor(
         isFocusable = false
     }
 
-    /**
-     * 绑定滚动视图：滚动时自动重绘本覆盖层
-     */
+    /** 绑定滚动视图：滚动时自动重绘本覆盖层 */
     fun bindScrollView(scrollView: View) {
         unbindScrollView()
         boundScrollView = scrollView
@@ -125,12 +159,10 @@ class ScrollEdgeBlurView @JvmOverloads constructor(
             ?.removeOnScrollChangedListener(scrollListener)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             contentNode?.discardDisplayList()
-            weakNode?.discardDisplayList()
-            strongNode?.discardDisplayList()
+            proxyNodes.forEach { it?.discardDisplayList() }
         }
         contentNode = null
-        weakNode = null
-        strongNode = null
+        for (i in proxyNodes.indices) proxyNodes[i] = null
         super.onDetachedFromWindow()
     }
 
@@ -167,8 +199,6 @@ class ScrollEdgeBlurView @JvmOverloads constructor(
         val margin = (maxBlurRadius * 2f).toInt().coerceAtLeast(8)
 
         val content = contentNode ?: RenderNode("ScrollEdgeContent").also { contentNode = it }
-        val weak = weakNode ?: RenderNode("ScrollEdgeWeak").also { weakNode = it }
-        val strong = strongNode ?: RenderNode("ScrollEdgeStrong").also { strongNode = it }
 
         // 1. 录制父视图内容（垂直外扩 margin）
         getLocationInWindow(location)
@@ -194,41 +224,40 @@ class ScrollEdgeBlurView @JvmOverloads constructor(
         }
         content.endRecording()
 
-        // 2. 代理节点挂模糊效果（半径变化时重建）
+        // 2. 分级代理挂固定模糊效果（半径变化时才重建）
         if (effectsDirty || lastEffectRadius != maxBlurRadius) {
-            weak.setRenderEffect(
-                RenderEffect.createBlurEffect(
-                    maxBlurRadius * 0.35f, maxBlurRadius * 0.35f, Shader.TileMode.CLAMP
+            for (i in 0 until LAYER_COUNT) {
+                val radius = maxBlurRadius * (i + 1) / LAYER_COUNT
+                val proxy = proxyNodes[i]
+                    ?: RenderNode("ScrollEdgeL$i").also { proxyNodes[i] = it }
+                proxy.setRenderEffect(
+                    RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP)
                 )
-            )
-            strong.setRenderEffect(
-                RenderEffect.createBlurEffect(maxBlurRadius, maxBlurRadius, Shader.TileMode.CLAMP)
-            )
+            }
             lastEffectRadius = maxBlurRadius
             effectsDirty = false
         }
-        recordProxy(weak, content, w, h, margin)
-        recordProxy(strong, content, w, h, margin)
+        for (i in 0 until LAYER_COUNT) {
+            recordProxy(proxyNodes[i]!!, content, w, h, margin)
+        }
 
-        // 3. 渐变遮罩（尺寸/方向变化时重建）
+        // 3. 各级渐变遮罩（尺寸/收尾位置变化时重建）
         if (gradientsDirty) {
             rebuildGradients(w.toFloat(), h.toFloat())
             gradientsDirty = false
         }
 
-        // 4. 两层叠加：弱模糊铺满渐变带，强模糊集中在边缘窄带
+        // 4. GPU 合成：a_i = clamp(progress*K - i, 0, 1)，弱级在下、强级在上。
+        //    progress 走过 1/K、2/K…… 时最强可见半径逐级抬升，等价于半径随滚动增大。
         val bounds = android.graphics.RectF(0f, 0f, w.toFloat(), h.toFloat())
-
-        var save = canvas.saveLayer(bounds, null)
-        canvas.drawRenderNode(weak)
-        canvas.drawRect(bounds, maskPaintWide)
-        canvas.restoreToCount(save)
-
-        save = canvas.saveLayer(bounds, null)
-        canvas.drawRenderNode(strong)
-        canvas.drawRect(bounds, maskPaintNarrow)
-        canvas.restoreToCount(save)
-
+        for (i in 0 until LAYER_COUNT) {
+            val a = (progress * LAYER_COUNT - i).coerceIn(0f, 1f)
+            if (a <= 0f) continue
+            val save = canvas.saveLayerAlpha(bounds, (a * 255f).toInt().coerceIn(0, 255))
+            canvas.drawRenderNode(proxyNodes[i]!!)
+            canvas.drawRect(bounds, maskPaints[i])
+            canvas.restoreToCount(save)
+        }
         return true
     }
 
@@ -244,25 +273,28 @@ class ScrollEdgeBlurView @JvmOverloads constructor(
         }
     }
 
+    /** 第 i 级遮罩的收尾高度：最弱级=整条带，最强级=fadeExtentPx，中间线性分布 */
+    private fun layerExtentPx(i: Int, h: Float): Float {
+        val strongest = if (fadeExtentPx in 1f..h) fadeExtentPx else h * 0.55f
+        val t = if (LAYER_COUNT <= 1) 0f else i.toFloat() / (LAYER_COUNT - 1)
+        return h + (strongest - h) * t
+    }
+
     private fun rebuildGradients(w: Float, h: Float) {
         val top = edge == Edge.TOP
-        // 弱模糊：整个高度上从不透明渐变到透明
-        maskPaintWide.shader = LinearGradient(
-            0f, if (top) 0f else h, 0f, if (top) h else 0f,
-            intArrayOf(Color.WHITE, Color.WHITE, Color.TRANSPARENT),
-            floatArrayOf(0f, 0.25f, 1f),
-            Shader.TileMode.CLAMP
-        )
-        // 强模糊：集中在靠边缘的 55% 窄带
-        maskPaintNarrow.shader = LinearGradient(
-            0f, if (top) 0f else h, 0f, if (top) h * 0.55f else h * 0.45f,
-            intArrayOf(Color.WHITE, Color.TRANSPARENT),
-            null,
-            Shader.TileMode.CLAMP
-        )
-        // 回退遮罩
+        for (i in 0 until LAYER_COUNT) {
+            val endY = layerExtentPx(i, h)
+            val (y0, y1) = if (top) 0f to endY else h to (h - endY)
+            maskPaints[i].shader = LinearGradient(
+                0f, y0, 0f, y1,
+                intArrayOf(Color.WHITE, Color.WHITE, Color.TRANSPARENT),
+                floatArrayOf(0f, 0.30f, 1f),
+                Shader.TileMode.CLAMP
+            )
+        }
+        val (sy0, sy1) = if (top) 0f to h else h to 0f
         scrimPaint.shader = LinearGradient(
-            0f, if (top) 0f else h, 0f, if (top) h else 0f,
+            0f, sy0, 0f, sy1,
             intArrayOf(0x66000000, Color.TRANSPARENT),
             null,
             Shader.TileMode.CLAMP
@@ -276,6 +308,7 @@ class ScrollEdgeBlurView @JvmOverloads constructor(
             rebuildGradients(width.toFloat(), height.toFloat())
             gradientsDirty = false
         }
+        scrimPaint.alpha = (progress * 0x66).toInt().coerceIn(0, 0x66)
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), scrimPaint)
     }
 }
