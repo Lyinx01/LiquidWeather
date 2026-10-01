@@ -181,6 +181,7 @@ class MainActivity : AppCompatActivity() {
 
         setupInsets()
         setupGlass()
+        setupScrollEdgeBlur()
         setupLists()
         setupTopBar()
         setupBackgroundAnimations()
@@ -222,7 +223,44 @@ class MainActivity : AppCompatActivity() {
                 right = sys.right + dp(16),
                 bottom = sys.bottom + dp(104)
             )
+
+            // 顶部渐进模糊带要盖住状态栏并往下延伸一段
+            val edgeLp = binding.scrollEdgeBlur.layoutParams as FrameLayout.LayoutParams
+            edgeLp.height = sys.top + dp(56)
+            binding.scrollEdgeBlur.layoutParams = edgeLp
             insets
+        }
+    }
+
+    /**
+     * 顶部滚动边缘模糊（iOS 26 Scroll Edge Effect）：
+     * 内容滚入状态栏/顶部区域时渐显，滚回顶部时消失。
+     *
+     * 「动态」用透明度实现而不是改 maxBlurRadius——后者每次变化都要重建
+     * RenderEffect，逐帧滚动时开销大；alpha 由 GPU 合成，零重建成本。
+     * 渐显距离取 96dp：滚过这段后模糊完全成形。
+     */
+    private fun setupScrollEdgeBlur() {
+        binding.scrollEdgeBlur.edge = com.example.liquidglass.ScrollEdgeBlurView.Edge.TOP
+        binding.scrollEdgeBlur.maxBlurRadius = dp(30).toFloat()
+        binding.scrollEdgeBlur.bindScrollView(binding.scroll)
+        binding.scroll.setOnScrollChangeListener { _, _, sy, _, _ ->
+            updateScrollEdgeBlur(sy)
+        }
+        updateScrollEdgeBlur(binding.scroll.scrollY)
+    }
+
+    private fun updateScrollEdgeBlur(scrollY: Int) {
+        val ramp = dp(96).toFloat()
+        val a = (scrollY / ramp).coerceIn(0f, 1f)
+        binding.scrollEdgeBlur.apply {
+            if (a <= 0f) {
+                // 顶部时彻底隐藏：GONE 的视图不参与绘制，也就不会逐帧录制父布局
+                if (visibility != View.GONE) visibility = View.GONE
+            } else {
+                if (visibility != View.VISIBLE) visibility = View.VISIBLE
+                alpha = a
+            }
         }
     }
 

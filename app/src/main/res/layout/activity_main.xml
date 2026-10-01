@@ -337,6 +337,18 @@
             </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <!-- 顶部滚动边缘渐进模糊（iOS 26 Scroll Edge Effect）：
+         内容滚入状态栏/顶部区域时，从清晰平滑过渡到模糊（两层代理 + 渐变遮罩叠加，
+         模糊半径视觉上从 0 渐变到最大）。高度在 setupInsets 里按 状态栏+56dp 设置；
+         平时隐藏，随滚动距离渐显（见 updateScrollEdgeBlur）。
+         z 序：在滚动内容之上、悬浮玻璃控件之下——顶栏胶囊保持清晰。 -->
+    <com.example.liquidglass.ScrollEdgeBlurView
+        android:id="@+id/scroll_edge_blur"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_gravity="top"
+        android:visibility="gone" />
+
     <!-- 顶部玻璃标题胶囊（居中） -->
     <com.example.liquidglass.LiquidGlassView
         android:id="@+id/glass_topbar"
