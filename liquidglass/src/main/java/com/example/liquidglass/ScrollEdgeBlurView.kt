@@ -46,6 +46,7 @@ import android.graphics.Shader
 import android.os.Build
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.annotation.RequiresApi
 
@@ -212,13 +213,22 @@ class ScrollEdgeBlurView @JvmOverloads constructor(
             rc.translate(-offsetX, margin - offsetY)
             isCapturing = true
             setTransitionVisibility(INVISIBLE)
+            // 同时藏掉父容器直接子级里的玻璃（顶栏胶囊/底部按钮）。
+            // 否则本次录制会引用玻璃的镜头节点，而玻璃的采样快照又可能引用
+            // V.contentNode（V 显示列表干净时按引用重放，isCapturing 守卫拦不住），
+            // 形成 采样快照 → V.contentNode → 玻璃镜头节点 → 采样快照 的引用环，
+            // RenderThread 光栅化无限递归 SIGSEGV。
+            // 被藏的胶囊/按钮在最终帧里由真实视图画在模糊带上方，视觉无损。
+            hideSiblingGlasses(parent)
             try {
                 parent.draw(rc)
             } finally {
+                restoreSiblingGlasses()
                 setTransitionVisibility(VISIBLE)
                 isCapturing = false
             }
         } catch (_: Exception) {
+            restoreSiblingGlasses()
             content.endRecording()
             return false
         }
@@ -271,6 +281,26 @@ class ScrollEdgeBlurView @JvmOverloads constructor(
         } finally {
             proxy.endRecording()
         }
+    }
+
+    // 录制期间被临时藏掉的兄弟玻璃；复用列表避免逐帧分配
+    private val hiddenSiblings = ArrayList<View>()
+
+    /** 藏掉父容器直接子级里的玻璃（录制期间排除，防止 RenderNode 引用成环） */
+    private fun hideSiblingGlasses(parent: View) {
+        if (parent !is ViewGroup) return
+        for (i in 0 until parent.childCount) {
+            val child = parent.getChildAt(i)
+            if (child is LiquidGlassView && child.visibility == View.VISIBLE) {
+                child.setTransitionVisibility(View.INVISIBLE)
+                hiddenSiblings.add(child)
+            }
+        }
+    }
+
+    private fun restoreSiblingGlasses() {
+        for (v in hiddenSiblings) v.setTransitionVisibility(View.VISIBLE)
+        hiddenSiblings.clear()
     }
 
     /** 第 i 级遮罩的收尾高度：最弱级=整条带，最强级=fadeExtentPx，中间线性分布 */

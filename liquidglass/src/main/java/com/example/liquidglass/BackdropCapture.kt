@@ -117,15 +117,24 @@ internal class BackdropCapture {
         }
     }
 
-    /** 把 [host] 的直接子级里（除 [except] 外）的玻璃临时藏起来；不往容器里钻，原因见类注释 */
+    /**
+     * 把 [host] 的直接子级里（除 [except] 外）的玻璃与录制型覆盖层临时藏起来；
+     * 不往容器里钻，原因见类注释
+     */
     private fun hideOtherGlass(host: View, except: View) {
         if (host !is ViewGroup) return
         for (i in 0 until host.childCount) {
             val child = host.getChildAt(i)
-            if (child === except || child !is LiquidGlassView) continue
-            if (child.visibility == View.VISIBLE) {
-                child.setTransitionVisibility(View.INVISIBLE)
-                nestedHidden.add(child)
+            if (child === except) continue
+            // ScrollEdgeBlurView 也是 RenderNode 录制视图（同玻璃一类），必须一并藏掉：
+            // 它的 contentNode 录的是父容器内容、里面含玻璃的镜头节点；若玻璃的采样
+            // 快照再引用它，就形成 采样快照 → V.contentNode → 玻璃镜头节点 → 采样快照
+            // 的引用环，RenderThread 光栅化无限递归 SIGSEGV（与玻璃互藏同理）
+            if (child is LiquidGlassView || child is ScrollEdgeBlurView) {
+                if (child.visibility == View.VISIBLE) {
+                    child.setTransitionVisibility(View.INVISIBLE)
+                    nestedHidden.add(child)
+                }
             }
         }
     }
