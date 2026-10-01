@@ -399,7 +399,7 @@ class MainActivity : AppCompatActivity() {
         binding.tvTempRange.text = ""
         binding.tvUpdated.text = ""
         setCardsVisible(false)
-        adaptCityTitleTone()
+        resetCityTitleTone()
         viewModel.reloadFromSettings()
     }
 
@@ -443,6 +443,15 @@ class MainActivity : AppCompatActivity() {
         binding.glassTopbar.post {
             GlassTextTone.adaptTextColorToSurface(binding.glassTopbar, binding.tvTitle)
         }
+    }
+
+    /**
+     * 背景整体换了（天气/城市切换）后重新判定胶囊文字色。
+     * 先清掉滞回记忆，避免上一次的结论把新背景下的判定压住。
+     */
+    private fun resetCityTitleTone() {
+        GlassTextTone.forget(binding.glassTopbar)
+        adaptCityTitleTone()
     }
 
     /**
@@ -526,8 +535,8 @@ class MainActivity : AppCompatActivity() {
             w.daily.firstOrNull()?.sunset
         )
         binding.tvTitle.text = w.location.name
-        // 天气变了 → 胶囊背后底色也变了，重测一次文字颜色
-        adaptCityTitleTone()
+        // 天气变了 → 胶囊背后底色也变了，清掉滞回记忆后重新判定文字色
+        resetCityTitleTone()
         binding.tvTemp.text = "${UnitConverter.displayInt(w.current.temperature, imperial)}°"
         binding.tvCondition.text = w.current.skyconName
         val today = w.daily.firstOrNull()
